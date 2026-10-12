@@ -33,8 +33,8 @@ button:disabled{opacity:.5}
 .dow{text-align:center;font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .day{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 5px 4px;min-height:104px;font-size:.7rem;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
 .day .n{font-weight:700;font-size:.82rem}.day .n small{font-weight:400;color:var(--muted)}.day .ico{font-size:1.1rem;line-height:1.15}
-.day .t{font-family:var(--mono);font-size:.64rem;white-space:nowrap}.day .p{font-size:.62rem;color:var(--muted)}
-.day .pill{margin-top:auto;font-size:.58rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:1px 5px;border-radius:999px;align-self:flex-start;color:#fff;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.day .t{font-family:var(--mono);font-size:.66rem;white-space:normal;line-height:1.25}.day .t b{font-weight:600}.day .p{font-size:.62rem;color:var(--muted)}
+.day .pill{margin-top:auto;font-size:.56rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;padding:1px 5px;border-radius:999px;align-self:flex-start;color:#fff;white-space:nowrap}
 .day.apto{background:var(--ok-bg)}.day.prec{background:var(--warn-bg)}.day.no{background:var(--bad-bg)}.day.tend{background:var(--tend)}.day.clim{background:var(--clim)}.day.past{background:var(--past);opacity:.85}
 .pill.apto{background:var(--ok)}.pill.prec{background:var(--warn)}.pill.no{background:var(--bad)}.pill.sin{background:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.74rem;color:var(--muted);margin-top:6px}.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;margin-right:3px}
@@ -49,7 +49,7 @@ th{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--mu
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}summary{cursor:pointer;font-weight:600}
 .pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent)}
 footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
-@media (max-width:640px){.day{min-height:92px}.day .p{display:none}}
+@media (max-width:640px){.day{min-height:104px;padding:4px 3px 3px}.day .p{display:none}.day .n{font-size:.78rem}.day .n small{display:none}.day .ico{font-size:1rem}.day .t{font-size:.6rem}.day .pill{font-size:.5rem;padding:1px 4px;letter-spacing:0}.day div[style]{font-size:.56rem!important}}
 </style>
 </head>
 <body>
@@ -280,7 +280,7 @@ function render(res,st,locName){
   $("calrange").textContent=`${fmt(days[0].d)} → ${fmt(days[days.length-1].d)}`;
   let h=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x=>`<div class="dow">${x}</div>`).join(""); const off=(days[0].d.getDay()+6)%7; for(let i=0;i<off;i++)h+="<div></div>";
   for(const x of days){ const cl=x.layer==="past"?"past":x.layer==="real"?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):x.layer; const rk=risks.find(r=>r.k===x.k); const [ico,txt]=x.tmin!=null?icoFrom(x.mm,x.tmax,rk?rk.cape:0):["▫️",x.layer==="clim"?"Sin pronóstico":"—"];
-    h+=`<div class="day ${cl}" title="${x.k}"><div class="n">${x.d.getDate()} <small>${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][x.d.getMonth()]}</small></div><div class="ico">${ico}</div><div style="font-size:.64rem">${txt}</div>${x.tmin!=null?`<div class="t">${x.tmin}°/${x.tmax}° · ${x.mm} mm</div><div class="p">P apto ${(x.pApto*100).toFixed(0)} % · ${x.members.length} esc.${x.tsoil!=null?" · suelo "+x.tsoil.toFixed(0)+"°":""}</div>`:""}<span class="pill ${x.tmin!=null?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):"sin"}">${x.layer==="past"?"Pasado":x.sem}</span></div>`; }
+    h+=`<div class="day ${cl}" title="${x.k}"><div class="n">${x.d.getDate()} <small>${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][x.d.getMonth()]}</small></div><div class="ico">${ico}</div><div style="font-size:.64rem">${txt}</div>${x.tmin!=null?`<div class="t">↓<b>${Math.round(x.tmin)}°</b> ↑<b>${Math.round(x.tmax)}°</b></div><div class="t">${x.mm>=0.5?x.mm.toFixed(x.mm<10?1:0)+" mm":"seco"}</div><div class="p">P apto ${(x.pApto*100).toFixed(0)} % · ${x.members.length} esc.${x.tsoil!=null?" · suelo "+x.tsoil.toFixed(0)+"°":""}</div>`:""}<span class="pill ${x.tmin!=null?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):"sin"}">${(()=>{const sm=window.innerWidth<640; const l=x.layer==="past"?"Pasado":x.sem; return sm?({"Pasado":"PAS.","PRECAUCIÓN":"PREC.","SIN DATO":"S/D"}[l]||l):l;})()}</span></div>`; }
   $("cal").innerHTML=h;
   // tabla diaria
   let t=`<tr><th>Fecha</th><th>Plazo</th><th>Escenarios</th><th>T suelo media · 08h</th><th>T mín</th><th>±</th><th>T máx</th><th>±</th><th>Lluvia</th><th>±</th><th>P seco</th><th>P >10 mm</th><th>P helada</th><th>GDD</th><th>P APTO</th><th>Conf.</th><th>Semáforo</th></tr>`;
@@ -326,6 +326,7 @@ async function main(){
   cache={models,obs,hourly,zone,st,loc,soil}; const r=run(models,obs,hourly,zone,soil); render(r,st,loc); $("btnRun").disabled=false;
 }
 $("btnRun").addEventListener("click",main);
+let _rt;window.addEventListener("resize",()=>{clearTimeout(_rt);_rt=setTimeout(()=>{if(cache){const r=run(cache.models,cache.obs,cache.hourly,cache.zone,cache.soil);render(r,cache.st,cache.loc);}},250);});
 $("btnShare").addEventListener("click",()=>{ if(!last) return; const txt=`AgroCast Biobío · ${last.locName}\n${last.head}\n${last.body}\n`+last.fut.slice(0,10).map(x=>`${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}: ${x.tmin}°/${x.tmax}°, ${x.mm} mm, P apto ${(x.pApto*100).toFixed(0)} % → ${x.sem}`).join("\n"); navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{$("btnShare").textContent="Copiado ✓";setTimeout(()=>$("btnShare").textContent="Copiar resumen",1500);}).catch(()=>{prompt("Copie el texto:",txt);}); });
 renderCrit(); main();
 })();
