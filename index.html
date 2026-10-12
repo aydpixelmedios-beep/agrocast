@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#f4f5ef;--panel:#fff;--fg:#1c261c;--muted:#5d6b5d;--line:#d6dbcd;--accent:#2b6a3b;--ok:#2e9e4f;--ok-bg:#dcf5e1;--warn:#d6891c;--warn-bg:#fdeed2;--bad:#c73d37;--bad-bg:#fbdfdd;--sev:#7a1f9c;--sev-bg:#efdcf7;--tend:#fdf5c6;--clim:#e8eae4;--past:#e3ebda;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root{--bg:#141914;--panel:#1d241d;--fg:#e6eadf;--muted:#a2ae9f;--line:#334030;--accent:#7cc987;--ok:#49c06a;--ok-bg:#1e4a2a;--warn:#f0a63a;--warn-bg:#4a3613;--bad:#f0685f;--bad-bg:#4c1e1b;--sev:#c489e0;--sev-bg:#3a1d4a;--tend:#4a4320;--clim:#2a302a;--past:#283824;color-scheme:dark}}
-*{box-sizing:border-box}html,body{margin:0}
+*{box-sizing:border-box}html,body{margin:0}[hidden]{display:none!important}
 body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;padding:env(safe-area-inset-top,0) 14px calc(24px + env(safe-area-inset-bottom,0));max-width:1200px;margin:0 auto}
 h1{font-size:1.45rem;margin:14px 0 2px;font-weight:700}h2{font-size:1.05rem;margin:24px 0 8px}
 .by{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
@@ -49,6 +49,26 @@ th{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--mu
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}summary{cursor:pointer;font-weight:600}
 .pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent)}
 footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.chip{border:1.5px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:12px 18px;font-size:1rem;font-weight:600;cursor:pointer;line-height:1.1}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.big{font-size:1.1rem;padding:14px 22px}
+.lbl{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px}
+.sel{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.sel select{font-size:1.05rem;padding:12px 14px;border-radius:12px;width:100%}
+.panel{display:none}.panel.on{display:block}
+.easy{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;margin-top:12px;border-left:8px solid var(--accent)}
+.easy.ok{border-left-color:var(--ok)}.easy.warn{border-left-color:var(--warn)}.easy.bad{border-left-color:var(--bad)}
+.easy h3{margin:0 0 6px;font-size:1.35rem;line-height:1.2}
+.easy p{font-size:1.08rem;margin:6px 0;line-height:1.45}
+.easy .big{font-size:2rem;font-weight:700;margin:4px 0}
+.easy ul{margin:6px 0 0 18px;padding:0;font-size:1.02rem}
+.easy li{margin:4px 0}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.kv{background:var(--bg);border-radius:12px;padding:10px 12px}.kv .k{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.kv .v{font-size:1.3rem;font-weight:700}
+details.tech summary{font-size:.95rem;color:var(--muted)}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media (max-width:640px){.chip{padding:11px 15px;font-size:.95rem}.easy h3{font-size:1.2rem}.easy p{font-size:1rem}}
 .seis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
 .q{font-family:var(--mono);font-size:.74rem}
 .warnbox{border:1px solid var(--warn);background:var(--warn-bg);border-radius:10px;padding:10px 12px;font-size:.84rem}
@@ -57,26 +77,35 @@ footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
 </head>
 <body>
 <header>
-  <div class="by">AgroCast Biobío · by RamiroKosher · v3.1 (12-10-2026)</div>
-  <h1>Pronóstico de ensamble y decisión agrícola</h1>
-  <p class="sub">Versión 2. Combina 8 modelos deterministas de 7 agencias más los ensambles completos del ECMWF (51 miembros), GFS (31), ICON (40) y GEM (21): más de 140 escenarios físicos por día. Corrige cada modelo contra NASA POWER, ERA5-Land y las observaciones locales que usted pegue (Agromet-INIA o estación propia) en los últimos 30 días, pondera por habilidad y entrega probabilidades. Usa temperatura de suelo modelada (0-7 cm) para el criterio del maíz. Alertas de lluvia intensa, tormenta eléctrica, aluvión e inundación. Semáforo de siembra de maíz con criterios editables.</p>
-  <div class="bar">
-    <select id="selReg" aria-label="Región"></select>
-    <select id="selLoc" aria-label="Comuna o localidad"></select>
-    <input id="lat" type="number" step="0.01" placeholder="lat" style="width:96px" aria-label="Latitud">
-    <input id="lon" type="number" step="0.01" placeholder="lon" style="width:96px" aria-label="Longitud">
-    <button id="btnRun" type="button">Calcular</button>
-    <button id="btnShare" type="button" class="ghost">Copiar resumen</button>
+  <div class="hdr"><div><div class="by">AgroCast Biobío · by RamiroKosher · v4.1</div><h1>¿Qué necesita saber hoy?</h1></div><button id="btnRun" type="button">Actualizar</button></div>
+  <div class="chips" id="tabs">
+    <button class="chip big on" data-tab="siembra" type="button">🌱 Voy a sembrar</button>
+    <button class="chip big" data-tab="clima" type="button">🌦️ Clima y alertas</button>
+    <button class="chip big" data-tab="sismos" type="button">🌋 Temblores</button>
+    <button class="chip big" data-tab="pro" type="button">🔬 Profesional</button>
+    <button class="chip big" data-tab="ajustes" type="button">⚙️ Ajustes</button>
   </div>
-  <div class="status" id="status"></div>
+  <div class="lbl">Dónde</div>
+  <div class="chips" id="zonechips"></div>
+  <div class="row2" style="margin-top:0">
+    <div class="sel"><label class="lbl" for="selReg" style="margin:0">Región / provincia</label><select id="selReg"></select></div>
+    <div class="sel"><label class="lbl" for="selLoc" style="margin:0">Comuna o ciudad</label><select id="selLoc"></select></div>
+  </div>
+  <div class="row2" id="latlonRow" style="margin-top:0" hidden><div class="sel"><label class="lbl" for="lat" style="margin:0">Latitud</label><input id="lat" type="number" step="0.01"></div><div class="sel"><label class="lbl" for="lon" style="margin:0">Longitud</label><input id="lon" type="number" step="0.01"></div></div>
+  <div class="chips" style="margin-top:4px"><button id="btnShare" type="button" class="chip">📋 Copiar resumen para WhatsApp</button></div>
+  <details class="tech"><summary>Estado de las fuentes de datos</summary><div class="status" id="status"></div></details>
 </header>
 
-<section id="summary"></section>
+<section class="panel on" data-panel="siembra"><div id="easySiembra"></div><section id="summary"></section>
 
+</section>
+<section class="panel" data-panel="clima"><div id="easyClima"></div>
 <h2>Alertas hidrometeorológicas (próximos 7 días)</h2>
 <div class="alerts" id="alerts"></div>
 <p class="note">Aluvión: lluvia ≥30 mm/24 h con isoterma 0 °C alta (≥2.500 m) en zona de precordillera/cordillera, o intensidad ≥10 mm/h. Inundación: acumulado 72 h ≥80 mm o suelo saturado (humedad 0-7 cm ≥0,40 m³/m³) con ≥40 mm/24 h. Tormenta: energía convectiva CAPE ≥800 J/kg con precipitación (el CAPE es el indicador físico de la carga eléctrica potencial de la atmósfera). Ola de calor (criterio DMC adaptado): T máx ≥30 °C tres días seguidos = alerta; ≥34 °C = alarma. Helada: T mín ≤2 °C = atención, ≤0 °C = alerta, ≤−2 °C = alarma. Niveles: 0 sin aviso · 1 atención · 2 alerta · 3 alarma.</p>
 
+</section>
+<section class="panel" data-panel="sismos"><div id="easySismos"></div>
 <h2>Vigilancia sísmica (radio 300 km)</h2>
 <div class="warnbox"><b>Lo que este módulo puede y no puede hacer.</b> Nadie en el mundo puede predecir la fecha, lugar y magnitud de un terremoto; el experimento de la Universidad de Texas (2023) acertó ~70 % de localizaciones con ventanas de una semana y 320 km de radio, y no es operativo. Lo que sí es ciencia establecida y aquí se implementa: (1) sismicidad en tiempo real (USGS y Centro Sismológico Nacional), (2) intensidad estimada en su comuna para cada evento, (3) probabilidad estadística de réplicas tras un sismo fuerte (modelo Reasenberg-Jones / ley de Omori), (4) detección de anomalías de tasa y de valor b (Gutenberg-Richter), y (5) la física de la alerta temprana por ondas P, que en Chile entrega el sistema de alertas sísmicas de Android (Google) a los teléfonos: actívelo en Ajustes → Seguridad y emergencia → Alertas de terremoto.</div>
 <div class="seis" id="seis" style="margin-top:8px"></div>
@@ -86,10 +115,12 @@ footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
 <div class="tw"><table id="tblf"></table></div>
 <div class="legend"><span>Fuente: USGS ComCat. La tabla se calcula en su teléfono al abrir la página; tarda unos segundos.</span></div>
 <p class="note">Intensidad estimada con la ecuación de predicción de intensidad para subducción chilena (Mercalli): I = 1,47·M − 2,4·log₁₀(R_hip) + 3,1 (ajuste tipo Bakun-Wentworth). Ventana de alerta temprana = tiempo S − tiempo P = D·(1/3,5 − 1/6,8) s. Réplicas: P(M≥5 en 7 días) según Reasenberg-Jones con parámetros genéricos (a=−1,67, b=0,91, p=1,08, c=0,05) para el mayor sismo M≥5,5 de los últimos 30 días.</p>
-<h2>Calendario de decisión <span id="calrange" class="note"></span></h2>
+</section>
+<section class="panel on" data-panel="siembra"><h2>Calendario de siembra <span id="calrange" class="note"></span></h2>
 <div class="cal" id="cal"></div>
 <div class="legend"><span><i style="background:var(--ok-bg)"></i>APTO (P≥70 %)</span><span><i style="background:var(--warn-bg)"></i>PRECAUCIÓN</span><span><i style="background:var(--bad-bg)"></i>NO</span><span><i style="background:var(--tend)"></i>Tendencia (días 11-16, baja confianza)</span><span><i style="background:var(--clim)"></i>Sin pronóstico numérico</span><span><i style="background:var(--past)"></i>Pasado</span></div>
 
+<details class="tech" style="margin-top:12px"><summary>Ver detalle técnico (ensamble diario, modelos y pesos)</summary>
 <h2>Ensamble diario</h2>
 <div class="tw"><table id="tbl"></table></div>
 <p class="note">Consenso = media ponderada de los modelos tras corrección de sesgo. Dispersión = desviación estándar ponderada (incertidumbre). P(APTO) = fracción ponderada de modelos en los que el día cumple todos los criterios de siembra (cada modelo es un escenario). La confianza decae con el plazo: ×1,0 días 1-3, ×0,85 días 4-6, ×0,7 días 7-10, ×0,5 días 11-16.</p>
@@ -98,6 +129,24 @@ footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
 <div class="tw"><table id="tblm"></table></div>
 <p class="note">Peso = habilidad base × 1/(1 + MAE reciente). MAE = error absoluto medio del modelo frente a la observación de referencia (local si la pegó; si no, NASA POWER; si no, ERA5-Land) en hasta 30 días. Los sistemas de ensamble reparten su peso entre sus miembros. Sesgo = media(modelo − observado), que se resta al pronóstico. Si NASA POWER no responde, se usan solo las habilidades base.</p>
 
+</details></section>
+<section class="panel" data-panel="pro">
+  <div class="easy"><h3>🔬 Modo profesional</h3><p>Datos completos del ensamble, variables de riesgo, calibración, parámetros sísmicos y exportación. Todo lo que se muestra en las otras pestañas sale de estas tablas.</p>
+  <div class="chips"><button type="button" class="chip" id="btnCsv">⬇️ Descargar CSV diario</button><button type="button" class="chip" id="btnJson">⬇️ Descargar JSON completo</button><button type="button" class="chip" id="btnCopyTbl">📋 Copiar tabla diaria</button></div></div>
+  <h2>Distribución del ensamble por día (percentiles)</h2>
+  <div class="tw"><table id="tblpro"></table></div>
+  <p class="note">P10 / P50 / P90 ponderados por el peso de cada miembro. Dispersión (σ) = incertidumbre del día. Escenarios = miembros con dato ese día. Suelo = media diaria 0-7 cm y valor 08:00 (modelo).</p>
+  <h2>Variables de riesgo horario agregadas por día</h2>
+  <div class="tw"><table id="tblrisk"></table></div>
+  <p class="note">CAPE máx (J/kg), isoterma 0 °C máx (m), humedad de suelo 0-7 cm máx (m³/m³), ráfaga máx (km/h), intensidad horaria máx (mm/h), acumulado 72 h. Fuente: Open-Meteo (ECMWF/best match).</p>
+  <h2>Sistemas de pronóstico: verificación y pesos</h2>
+  <div class="tw"><table id="tblm2"></table></div>
+  <h2>Parámetros del modelo sísmico ETAS-Chile para el punto</h2>
+  <div id="etaspar" class="note"></div>
+  <h2>Criterios y método</h2>
+  <p class="note">Corrección de sesgo tipo MOS sobre 30 días (prioridad: observación local → NASA POWER → ERA5-Land). Peso = habilidad base × 1/(1+MAE). Ensambles reparten su peso entre miembros. P(APTO) = fracción ponderada de escenarios que cumplen todos los criterios de siembra (hoja Ajustes). Confianza por plazo ×1,0 (1-3 d), ×0,85 (4-6), ×0,7 (7-10), ×0,5 (11-16). GDD base 10/tope 30. Semáforo: NO si P(helada)≥20 % o P(>10 mm)≥30 %; APTO si P·conf ≥ umbral; PRECAUCIÓN si P ≥ 40 %.</p>
+</section>
+<section class="panel" data-panel="ajustes">
 <h2>Criterios de siembra de maíz (editables)</h2>
 <div class="crit" id="crit"></div>
 <details><summary>Observaciones locales (Agromet-INIA o estación propia) para calibrar</summary>
@@ -119,6 +168,7 @@ footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
   </ul>
 </details>
 
+</section>
 <footer>
   <p>Fuentes de referencia: <a href="https://climatologia.meteochile.gob.cl/application/publicaciones/boletinTendenciasClimaticas">DMC Chile</a> · <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">NOAA CPC ENSO</a> · <a href="https://wmo.int/resources/publication-series/global-seasonal-climate-updates">OMM GSCU</a> · <a href="https://open-meteo.com/">Open-Meteo</a> · <a href="https://power.larc.nasa.gov/">NASA POWER</a> · <a href="https://api.met.no/">MET Norway</a>.</p>
   <p>Este sistema entrega probabilidades, no certezas. Confianza alta en los días 1-3, media 4-6, baja 7-10, muy baja 11-16. La decisión final es del agricultor.</p>
@@ -156,7 +206,14 @@ const selReg=$("selReg"),selLoc=$("selLoc");
 for(const r in REG){const o=document.createElement("option");o.value=r;o.textContent=r;selReg.appendChild(o);}
 function fillLoc(){selLoc.innerHTML="";for(const l of REG[selReg.value]){const o=document.createElement("option");o.value=l[0];o.textContent=l[0]+(l[3]?" · "+l[3]:"");selLoc.appendChild(o);} setLatLon();}
 function setLatLon(){const l=REG[selReg.value].find(x=>x[0]===selLoc.value);if(l){$("lat").value=l[1];$("lon").value=l[2];}}
-selReg.addEventListener("change",fillLoc);selLoc.addEventListener("change",setLatLon);fillLoc();
+selReg.addEventListener("change",()=>{fillLoc();syncChips();});selLoc.addEventListener("change",setLatLon);fillLoc();
+// chips de zona
+const ZC=[["Prov. Biobío","Región del Biobío · Provincia de Biobío"],["Concepción","Región del Biobío · Provincia de Concepción"],["Arauco","Región del Biobío · Provincia de Arauco"],["Todo Chile","Chile · capitales regionales"],["Coordenadas","Punto libre (lat/lon)"]];
+const zc=$("zonechips"); zc.innerHTML=ZC.map(z=>`<button type="button" class="chip" data-reg="${z[1]}">${z[0]}</button>`).join("");
+function syncChips(){zc.querySelectorAll(".chip").forEach(b=>b.classList.toggle("on",b.dataset.reg===selReg.value)); $("latlonRow").hidden=!selReg.value.startsWith("Punto");}
+zc.addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;selReg.value=b.dataset.reg;fillLoc();syncChips();main();}); syncChips();
+// pestañas
+const tabs=$("tabs"); tabs.addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;tabs.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.dataset.panel===b.dataset.tab));window.scrollTo({top:0,behavior:"smooth"});});
 function zoneOf(){const l=REG[selReg.value].find(x=>x[0]===selLoc.value);return l?l[3]:"valle";}
 
 // ---------- Fetchers ----------
@@ -379,9 +436,11 @@ function render(res,st,locName){
   const Wt=Object.values(info).reduce((s,i)=>s+i.w,0);
   for(const id in info){const i=info[id];tm+=`<tr><td>${i.name}</td><td>${i.agency}</td><td>${i.members}</td><td>${i.base.toFixed(2)}</td><td>${i.n}</td><td>${i.mae!=null?i.mae.toFixed(2):"—"}</td><td>${i.maeP!=null?i.maeP.toFixed(2):"—"}</td><td>${i.bT.toFixed(2)}</td><td>${i.bN.toFixed(2)}</td><td>${(i.w/Wt*100).toFixed(1)} %</td><td>${i.days}</td></tr>`;}
   $("tblm").innerHTML=tm;
-  last={head,body,locName,fut,risks};
+  last={head,body,locName,fut,risks,best,frost,apt,days};
+  easySiembra(locName); easyClima(locName); renderPro(res,st,locName);
   renderSeis(st,locName);
   renderForecast(parseFloat($("lat").value),parseFloat($("lon").value),locName);
+  easySismos(locName);
 }
 let seisData=null;
 function renderSeis(st,locName){
@@ -398,6 +457,61 @@ function renderSeis(st,locName){
   for(const e of S.ev.slice(0,25)) t+=`<tr><td>${e.t.toLocaleString("es-CL",{timeZone:"America/Santiago"})}</td><td><b>${e.m.toFixed(1)}</b></td><td>${(e.dep||0).toFixed(0)}</td><td>${e.dist.toFixed(0)}</td><td>${e.I.toFixed(1)}</td><td>${e.warn.toFixed(0)} s</td><td style="white-space:normal;text-align:left">${e.place||""}</td><td>${e.src}</td></tr>`;
   tb.innerHTML=t||"";
 }
+function easySiembra(loc){
+  const L=last; const el=$("easySiembra"); if(!L||!L.fut.length){el.innerHTML=`<div class="easy warn"><h3>Sin pronóstico disponible</h3><p>Pulse Actualizar o revise la conexión.</p></div>`;return;}
+  const b=L.best; const cls=b&&b.length>=3?"ok":b?"warn":"bad";
+  const dias=b?b.map(x=>x.d.toLocaleDateString("es-CL",{weekday:"long",day:"numeric"})).join(", "):"";
+  const mejor=b?b.slice().sort((a,c)=>c.pApto-a.pApto)[0]:null;
+  const lluviaDias=L.fut.filter(x=>x.mm>=5).map(x=>x.d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric"}));
+  const tmaxMax=Math.max(...L.fut.map(x=>x.tmax)), tminMin=Math.min(...L.fut.map(x=>x.tmin));
+  el.innerHTML=`<div class="easy ${cls}"><h3>${b&&b.length>=3?"✅ Sí hay días buenos para sembrar en "+loc:b?"⚠️ Ventana corta para sembrar en "+loc:"⛔ Por ahora no conviene sembrar en "+loc}</h3>
+   ${b?`<p>Días recomendados: <b>${dias}</b>.</p><p>El mejor día es el <b>${mejor.d.toLocaleDateString("es-CL",{weekday:"long",day:"numeric",month:"long"})}</b>: ${(mejor.pApto*100).toFixed(0)} de cada 100 escenarios lo dan como seguro.</p>`:`<p>En los próximos ${L.fut.length} días el suelo, la lluvia o el frío no acompañan. Vuelva a mirar en 2-3 días.</p>`}
+   <ul><li>Lluvia fuerte prevista: ${lluviaDias.length?lluviaDias.join(", "):"ninguna en el horizonte"}.</li><li>Temperaturas: entre ${Math.round(tminMin)}° de mínima y ${Math.round(tmaxMax)}° de máxima.</li><li>Riesgo de helada: ${L.frost.length?"⚠️ sí, el "+L.frost.map(x=>x.d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric"})).join(", "):"ninguno"}.</li>${b&&b[0].emerg?`<li>Si siembra el ${b[0].d.toLocaleDateString("es-CL",{day:"numeric",month:"short"})}, las plantas asomarían hacia el ${b[0].emerg.toLocaleDateString("es-CL",{day:"numeric",month:"long"})}.</li>`:""}</ul>
+   <p class="note" style="margin-top:8px">Verde = siembre · Naranjo = espere o consulte · Rojo = no. Datos de ${L.fut.length} días con pronóstico real; lo demás es tendencia.</p></div>`;
+}
+function easyClima(loc){
+  const L=last; const el=$("easyClima"); if(!L){el.innerHTML="";return;} const R=L.risks||[]; const lv=["sin aviso","atención","alerta","alarma"];
+  const top=(f)=>R.reduce((m,r)=>(r[f]||0)>m.l?{l:r[f],k:r.k,r}:m,{l:0});
+  const items=[["🌧️ Lluvia fuerte","heavy",r=>`${r.mm.toFixed(0)} mm en 24 h`],["⛈️ Tormenta eléctrica","storm",r=>"energía de tormenta "+r.cape.toFixed(0)+" J/kg"],["🏔️ Aluvión","alu",r=>`${r.mm.toFixed(0)} mm con isoterma 0 °C a ${r.fl.toFixed(0)} m`],["🌊 Inundación","inu",r=>`${r.r72.toFixed(0)} mm en 72 h`],["🥵 Ola de calor","heat",r=>`máxima ${r.tmax!=null?r.tmax.toFixed(0):"—"} °C`],["🥶 Helada","frost",r=>`mínima ${r.tmin!=null?r.tmin.toFixed(1):"—"} °C`],["💨 Viento fuerte","wind",r=>`ráfagas ${r.gust.toFixed(0)} km/h`]];
+  const act=items.map(([n,f,fn])=>({n,t:top(f),fn})).filter(x=>x.t.l>0).sort((a,b)=>b.t.l-a.t.l);
+  const worst=act[0]?act[0].t.l:0; const cls=worst>=3?"bad":worst>=2?"warn":worst>=1?"warn":"ok";
+  const hoy=L.fut[0]; const rk=R.find(r=>r.k===(hoy&&hoy.k));
+  el.innerHTML=`<div class="easy ${cls}"><h3>${worst>=2?"⚠️ Hay avisos para los próximos 7 días en "+loc:worst===1?"🔎 Vigilancia: sin peligro inmediato en "+loc:"✅ Sin avisos para los próximos 7 días en "+loc}</h3>
+   ${hoy?`<div class="row2"><div class="kv"><div class="k">Hoy máx / mín</div><div class="v">${Math.round(hoy.tmax)}° / ${Math.round(hoy.tmin)}°</div></div><div class="kv"><div class="k">Lluvia hoy</div><div class="v">${hoy.mm>=0.5?hoy.mm.toFixed(1)+" mm":"seco"}</div></div><div class="kv"><div class="k">Prob. de lluvia</div><div class="v">${(100-hoy.pDry*100).toFixed(0)} %</div></div><div class="kv"><div class="k">Lluvia en 7 días</div><div class="v">${L.fut.slice(0,7).reduce((s,x)=>s+x.mm,0).toFixed(0)} mm</div></div></div>`:""}
+   <ul>${act.length?act.map(x=>`<li><b>${x.n}: ${lv[x.t.l]}</b> el ${pd(x.t.k).toLocaleDateString("es-CL",{weekday:"long",day:"numeric"})} (${x.fn(x.t.r)}).</li>`).join(""):"<li>Lluvia fuerte, tormenta, aluvión, inundación, calor extremo, helada y viento: todo en nivel normal.</li>"}</ul>
+   <p class="note" style="margin-top:8px">Niveles: atención → prepárese · alerta → tome medidas · alarma → peligro real. En la costa y zonas bajas, siga siempre las instrucciones de SENAPRED.</p></div>`;
+}
+function easySismos(loc){
+  const el=$("easySismos"); const S=seisData; let fc=null; try{ if(CAT) fc=etasWeekly(parseFloat($("lat").value),parseFloat($("lon").value),CAT,300,5.0,7); }catch(e){}
+  if(!S&&!fc){el.innerHTML=`<div class="easy warn"><h3>Sin datos sísmicos ahora</h3><p>USGS o CSN no respondieron. Pulse Actualizar.</p></div>`;return;}
+  const ratio=fc?fc.ratio:(S?S.ratio:1); const cls=ratio>=3?"bad":ratio>=2?"warn":"ok";
+  const p=fc?(fc.p*100):null; const felt=S&&S.maxI;
+  el.innerHTML=`<div class="easy ${cls}"><h3>${ratio>=3?"⚠️ Actividad sísmica muy por sobre lo normal cerca de "+loc:ratio>=2?"🔎 Actividad sísmica algo elevada cerca de "+loc:"✅ Actividad sísmica normal cerca de "+loc}</h3>
+   ${p!=null?`<p>Posibilidad de un sismo fuerte (magnitud 5 o más) a menos de 300 km en los próximos 7 días:</p><div class="big">${p.toFixed(0)} de cada 100</div><p>Lo normal para esta zona es ${(fc.p0*100).toFixed(0)} de cada 100. ${ratio>=2?"Está "+ratio.toFixed(1)+" veces más alto que lo habitual, casi siempre por réplicas de un sismo reciente.":"Es un nivel habitual: Chile es país sísmico todo el año."}</p>`:""}
+   <ul>${S?`<li>Sismos de magnitud 3 o más en la última semana: <b>${S.last7}</b> (promedio normal: ${(S.last30/30*7).toFixed(0)}).</li>`:""}${felt?`<li>El más sentido en 7 días: magnitud ${felt.m.toFixed(1)} a ${felt.dist.toFixed(0)} km, intensidad ${felt.I.toFixed(0)} en escala de 12 (${felt.I<3?"apenas perceptible":felt.I<5?"leve":felt.I<7?"fuerte":"muy fuerte"}).</li>`:""}${S&&S.after?`<li>Réplicas: ${(S.after.p7*100).toFixed(0)} de cada 100 de que haya otro M5+ en 7 días tras el M${S.after.m.toFixed(1)}.</li>`:""}${fc&&fc.tsu?"<li>🌊 Hubo un sismo M7+ somero reciente: en la costa, revise los avisos del SHOA.</li>":""}</ul>
+   <p><b>Nadie puede predecir el día de un terremoto.</b> Lo que sí salva vidas: active las <b>alertas de terremoto de Android</b> (Ajustes → Seguridad y emergencia), tenga la mochila lista y conozca su zona segura. Si está en la costa y el sismo no lo deja mantenerse en pie, evacúe a altura sin esperar aviso.</p>
+   <p class="note">Cálculo: modelo ETAS-Chile con catálogo USGS 2000-hoy, verificado automáticamente cada semana en este dispositivo.</p></div>`;
+}
+function wq(members,key,q){ const arr=members.map(m=>({v:m[key],w:m.w})).sort((a,b)=>a.v-b.v); const W=arr.reduce((s,a)=>s+a.w,0); let acc=0; for(const a of arr){ acc+=a.w; if(acc/W>=q) return a.v; } return arr.length?arr[arr.length-1].v:null; }
+let proRows=[];
+function renderPro(res,st,locName){
+  const {info,days,risks}=res; const rows=days.filter(x=>x.tmin!=null); proRows=[];
+  let t=`<tr><th>Fecha</th><th>Plazo</th><th>Escen.</th><th>Tmín P10/P50/P90</th><th>σ</th><th>Tmáx P10/P50/P90</th><th>σ</th><th>Lluvia P10/P50/P90</th><th>σ</th><th>P seco</th><th>P>10</th><th>P hel.</th><th>Suelo med·08h</th><th>GDD</th><th>GDD acum</th><th>P APTO</th><th>Semáforo</th></tr>`;
+  let gacc=0;
+  for(const x of rows){ const m=x.members; const q=(k,p)=>{const v=wq(m,k,p);return v==null?"—":v.toFixed(1);};
+    gacc+=x.gdd; proRows.push({fecha:x.k,plazo:x.lead,escenarios:m.length,tmin_p10:wq(m,"tmin",.1),tmin_p50:wq(m,"tmin",.5),tmin_p90:wq(m,"tmin",.9),tmax_p10:wq(m,"tmax",.1),tmax_p50:wq(m,"tmax",.5),tmax_p90:wq(m,"tmax",.9),mm_p10:wq(m,"mm",.1),mm_p50:wq(m,"mm",.5),mm_p90:wq(m,"mm",.9),tmin:x.tmin,tmax:x.tmax,mm:x.mm,sd_tmin:+x.sdN.toFixed(2),sd_tmax:+x.sdT.toFixed(2),sd_mm:+x.sdP.toFixed(2),p_seco:+x.pDry.toFixed(3),p_mas10:+x.pWet10.toFixed(3),p_helada:+x.pFrost.toFixed(3),suelo_media:x.tsoil,suelo_08:x.tsoil08,gdd:+x.gdd.toFixed(2),gdd_acum:+gacc.toFixed(1),p_apto:+x.pApto.toFixed(3),conf:x.conf,semaforo:x.sem});
+    t+=`<tr><td>${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}</td><td>${x.lead}</td><td>${m.length}</td><td>${q("tmin",.1)} / ${q("tmin",.5)} / ${q("tmin",.9)}</td><td>${x.sdN.toFixed(1)}</td><td>${q("tmax",.1)} / ${q("tmax",.5)} / ${q("tmax",.9)}</td><td>${x.sdT.toFixed(1)}</td><td>${q("mm",.1)} / ${q("mm",.5)} / ${q("mm",.9)}</td><td>${x.sdP.toFixed(1)}</td><td>${(x.pDry*100).toFixed(0)} %</td><td>${(x.pWet10*100).toFixed(0)} %</td><td>${(x.pFrost*100).toFixed(0)} %</td><td>${x.tsoil!=null?x.tsoil.toFixed(1)+" · "+(x.tsoil08!=null?x.tsoil08.toFixed(1):"—"):"—"}</td><td>${x.gdd.toFixed(1)}</td><td>${gacc.toFixed(0)}</td><td>${(x.pApto*100).toFixed(0)} %</td><td>${x.sem}</td></tr>`; }
+  $("tblpro").innerHTML=t;
+  let tr=`<tr><th>Fecha</th><th>Lluvia 24 h</th><th>Máx mm/h</th><th>72 h</th><th>CAPE máx</th><th>Isoterma 0 °C</th><th>Hum. suelo</th><th>Ráfaga</th><th>Tmáx</th><th>Tmín</th><th>Niveles L/T/A/I/V/C/H</th></tr>`;
+  for(const r of risks.slice().sort((a,b)=>a.k<b.k?-1:1)) tr+=`<tr><td>${r.k}</td><td>${r.mm.toFixed(1)}</td><td>${r.maxh.toFixed(1)}</td><td>${r.r72.toFixed(0)}</td><td>${r.cape.toFixed(0)}</td><td>${r.fl.toFixed(0)}</td><td>${r.sm.toFixed(2)}</td><td>${r.gust.toFixed(0)}</td><td>${r.tmax!=null?r.tmax.toFixed(1):"—"}</td><td>${r.tmin!=null?r.tmin.toFixed(1):"—"}</td><td>${[r.heavy,r.storm,r.alu,r.inu,r.wind,r.heat||0,r.frost||0].join("/")}</td></tr>`;
+  $("tblrisk").innerHTML=tr;
+  $("tblm2").innerHTML=$("tblm").innerHTML;
+  try{ const fc=CAT?etasWeekly(parseFloat($("lat").value),parseFloat($("lon").value),CAT,300,5.0,7):null; $("etaspar").innerHTML=fc?`Radio 300 km · Mc 4,5 · profundidad ≤150 km · eventos en catálogo: ${fc.nAll} · b regional = ${fc.par.b.toFixed(2)} · K = ${fc.par.K.toFixed(4)} (ajustado con ${fc.par.nMain} secuencias M≥6,5) · α = ${fc.par.al} · c = ${fc.par.c} d · p = ${fc.par.pp} · λ fondo 7 d = ${fc.bg.toFixed(3)} · λ disparo 7 d = ${fc.trig.toFixed(3)} · P(M≥5, 7 d) = ${(fc.p*100).toFixed(1)} % · razón = ${fc.ratio.toFixed(2)}`:"Catálogo no cargado."; }catch(e){ $("etaspar").textContent="—"; }
+}
+function dl(name,txt,type){ const b=new Blob([txt],{type}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+$("btnCsv").addEventListener("click",()=>{ if(!proRows.length) return; const cols=Object.keys(proRows[0]); dl(`agrocast_${(last&&last.locName||"punto").replace(/\W+/g,"_")}_${new Date().toISOString().slice(0,10)}.csv`,cols.join(";")+"\n"+proRows.map(r=>cols.map(c=>r[c]==null?"":r[c]).join(";")).join("\n"),"text/csv"); });
+$("btnJson").addEventListener("click",()=>{ if(!cache) return; dl(`agrocast_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({generado:new Date().toISOString(),lugar:last&&last.locName,criterios:crit,diario:proRows,riesgos:last&&last.risks,sismos:seisData&&seisData.ev.slice(0,50),estado:cache.st},null,1),"application/json"); });
+$("btnCopyTbl").addEventListener("click",()=>{ const txt=$("tblpro").innerText; navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{$("btnCopyTbl").textContent="Copiado ✓";setTimeout(()=>$("btnCopyTbl").textContent="📋 Copiar tabla diaria",1500);}).catch(()=>{}); });
 function renderStatus(st){ $("status").innerHTML=Object.entries(st).map(([k,v])=>`<span class="${v.ok?"on":"off"}">${v.msg}</span>`).join(""); }
 function renderCrit(){ $("crit").innerHTML=Object.keys(DEF).map(k=>`<label>${LAB[k]}<input id="c_${k}" type="${k==="deadline"?"text":"number"}" step="${k==="pApto"?0.05:1}" value="${crit[k]}"></label>`).join("")+`<label><span>&nbsp;</span><button type="button" id="btnReset" class="ghost">Restablecer</button></label>`;
   document.querySelectorAll("#crit input").forEach(i=>i.addEventListener("change",()=>{const k=i.id.slice(2);crit[k]=k==="deadline"?i.value:parseFloat(i.value);try{localStorage.setItem("agc_crit",JSON.stringify(crit));}catch(e){} if(cache) {const r=run(cache.models,cache.obs,cache.hourly,cache.zone,cache.soil);render(r,cache.st,cache.loc);} }));
@@ -437,7 +551,7 @@ async function main(){
 }
 $("btnRun").addEventListener("click",main);
 let _rt;window.addEventListener("resize",()=>{clearTimeout(_rt);_rt=setTimeout(()=>{if(cache){const r=run(cache.models,cache.obs,cache.hourly,cache.zone,cache.soil);render(r,cache.st,cache.loc);}},250);});
-$("btnShare").addEventListener("click",()=>{ if(!last) return; const txt=`AgroCast Biobío · ${last.locName}\n${last.head}\n${last.body}\n`+last.fut.slice(0,10).map(x=>`${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}: ${x.tmin}°/${x.tmax}°, ${x.mm} mm, P apto ${(x.pApto*100).toFixed(0)} % → ${x.sem}`).join("\n"); navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{$("btnShare").textContent="Copiado ✓";setTimeout(()=>$("btnShare").textContent="Copiar resumen",1500);}).catch(()=>{prompt("Copie el texto:",txt);}); });
+$("btnShare").addEventListener("click",()=>{ if(!last) return; const txt=`AgroCast Biobío · ${last.locName}\n${last.head}\n${last.body}\n`+last.fut.slice(0,10).map(x=>`${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}: ${x.tmin}°/${x.tmax}°, ${x.mm} mm, P apto ${(x.pApto*100).toFixed(0)} % → ${x.sem}`).join("\n"); navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{$("btnShare").textContent="Copiado ✓";setTimeout(()=>$("btnShare").textContent="📋 Copiar resumen para WhatsApp",1500);}).catch(()=>{prompt("Copie el texto:",txt);}); });
 renderCrit(); main();
 })();
 </script>
