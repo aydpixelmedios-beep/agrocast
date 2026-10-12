@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AgroCast Biobío by RamiroKosher</title>
+<meta name="description" content="Ensamble multi-modelo con corrección satelital, alertas de lluvia intensa, tormenta, aluvión e inundación, y semáforo de siembra de maíz. Chile, Región del Biobío.">
+<style>
+:root{--bg:#f4f5ef;--panel:#fff;--fg:#1c261c;--muted:#5d6b5d;--line:#d6dbcd;--accent:#2b6a3b;--ok:#2e9e4f;--ok-bg:#dcf5e1;--warn:#d6891c;--warn-bg:#fdeed2;--bad:#c73d37;--bad-bg:#fbdfdd;--sev:#7a1f9c;--sev-bg:#efdcf7;--tend:#fdf5c6;--clim:#e8eae4;--past:#e3ebda;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#141914;--panel:#1d241d;--fg:#e6eadf;--muted:#a2ae9f;--line:#334030;--accent:#7cc987;--ok:#49c06a;--ok-bg:#1e4a2a;--warn:#f0a63a;--warn-bg:#4a3613;--bad:#f0685f;--bad-bg:#4c1e1b;--sev:#c489e0;--sev-bg:#3a1d4a;--tend:#4a4320;--clim:#2a302a;--past:#283824;color-scheme:dark}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.45;padding:env(safe-area-inset-top,0) 14px calc(24px + env(safe-area-inset-bottom,0));max-width:1200px;margin:0 auto}
+h1{font-size:1.45rem;margin:14px 0 2px;font-weight:700}h2{font-size:1.05rem;margin:24px 0 8px}
+.by{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sub{color:var(--muted);font-size:.86rem;margin:4px 0 0;max-width:80ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+select,input,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--fg);max-width:100%}
+button{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;cursor:pointer}button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.5}
+.status{font-family:var(--mono);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+.status span::before{content:"●";margin-right:4px}.status .on::before{color:var(--ok)}.status .off::before{color:var(--bad)}.status .wait::before{color:var(--warn)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.tile .k{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.tile .v{font-size:1.35rem;font-weight:700;font-variant-numeric:tabular-nums}.tile .s{font-size:.78rem;color:var(--muted)}
+.verdict{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;background:var(--panel);padding:12px 14px;margin-top:10px}
+.verdict.ok{border-left-color:var(--ok)}.verdict.warn{border-left-color:var(--warn)}.verdict.bad{border-left-color:var(--bad)}
+.verdict p{margin:4px 0}
+.alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.alert{border-radius:10px;padding:10px 12px;border:1px solid var(--line);background:var(--panel)}
+.alert.l0{background:var(--ok-bg)}.alert.l1{background:var(--warn-bg)}.alert.l2{background:var(--bad-bg)}.alert.l3{background:var(--sev-bg)}
+.alert .k{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.alert .v{font-weight:700;font-size:1.05rem}.alert .s{font-size:.78rem}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{text-align:center;font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 5px 4px;min-height:104px;font-size:.7rem;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
+.day .n{font-weight:700;font-size:.82rem}.day .n small{font-weight:400;color:var(--muted)}.day .ico{font-size:1.1rem;line-height:1.15}
+.day .t{font-family:var(--mono);font-size:.64rem;white-space:nowrap}.day .p{font-size:.62rem;color:var(--muted)}
+.day .pill{margin-top:auto;font-size:.58rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:1px 5px;border-radius:999px;align-self:flex-start;color:#fff;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.day.apto{background:var(--ok-bg)}.day.prec{background:var(--warn-bg)}.day.no{background:var(--bad-bg)}.day.tend{background:var(--tend)}.day.clim{background:var(--clim)}.day.past{background:var(--past);opacity:.85}
+.pill.apto{background:var(--ok)}.pill.prec{background:var(--warn)}.pill.no{background:var(--bad)}.pill.sin{background:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.74rem;color:var(--muted);margin-top:6px}.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;border:1px solid var(--line);vertical-align:-1px;margin-right:3px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:.76rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);position:sticky;top:0;background:var(--panel)}
+.crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.crit label{display:flex;flex-direction:column;gap:3px;font-size:.76rem;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.crit input{font-family:var(--mono);padding:5px 8px}
+.note{font-size:.8rem;color:var(--muted);max-width:80ch}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}summary{cursor:pointer;font-weight:600}
+.pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent)}
+footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
+@media (max-width:640px){.day{min-height:92px}.day .p{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="by">AgroCast Biobío · by RamiroKosher</div>
+  <h1>Pronóstico de ensamble y decisión agrícola</h1>
+  <p class="sub">Combina hasta 10 modelos numéricos de 7 agencias (ECMWF, NOAA, DWD, Environment Canada, UK Met Office, JMA, Météo-France, BoM), los corrige contra observación satelital NASA POWER, los pondera por habilidad reciente y entrega probabilidades. Alertas de lluvia intensa, tormenta eléctrica, aluvión e inundación. Semáforo de siembra de maíz con criterios editables.</p>
+  <div class="bar">
+    <select id="selReg" aria-label="Región"></select>
+    <select id="selLoc" aria-label="Comuna o localidad"></select>
+    <input id="lat" type="number" step="0.01" placeholder="lat" style="width:96px" aria-label="Latitud">
+    <input id="lon" type="number" step="0.01" placeholder="lon" style="width:96px" aria-label="Longitud">
+    <button id="btnRun" type="button">Calcular</button>
+    <button id="btnShare" type="button" class="ghost">Copiar resumen</button>
+  </div>
+  <div class="status" id="status"></div>
+</header>
+
+<section id="summary"></section>
+
+<h2>Alertas hidrometeorológicas (próximos 7 días)</h2>
+<div class="alerts" id="alerts"></div>
+<p class="note">Aluvión: lluvia ≥30 mm/24 h con isoterma 0 °C alta (≥2.500 m) en zona de precordillera/cordillera, o intensidad ≥10 mm/h. Inundación: acumulado 72 h ≥80 mm o suelo saturado (humedad 0-7 cm ≥0,40 m³/m³) con ≥40 mm/24 h. Tormenta: energía convectiva CAPE ≥800 J/kg con precipitación (el CAPE es el indicador físico de la carga eléctrica potencial de la atmósfera). Niveles: 0 sin aviso · 1 atención · 2 alerta · 3 alarma.</p>
+
+<h2>Calendario de decisión <span id="calrange" class="note"></span></h2>
+<div class="cal" id="cal"></div>
+<div class="legend"><span><i style="background:var(--ok-bg)"></i>APTO (P≥70 %)</span><span><i style="background:var(--warn-bg)"></i>PRECAUCIÓN</span><span><i style="background:var(--bad-bg)"></i>NO</span><span><i style="background:var(--tend)"></i>Tendencia (días 11-16, baja confianza)</span><span><i style="background:var(--clim)"></i>Sin pronóstico numérico</span><span><i style="background:var(--past)"></i>Pasado</span></div>
+
+<h2>Ensamble diario</h2>
+<div class="tw"><table id="tbl"></table></div>
+<p class="note">Consenso = media ponderada de los modelos tras corrección de sesgo. Dispersión = desviación estándar ponderada (incertidumbre). P(APTO) = fracción ponderada de modelos en los que el día cumple todos los criterios de siembra (cada modelo es un escenario). La confianza decae con el plazo: ×1,0 días 1-3, ×0,85 días 4-6, ×0,7 días 7-10, ×0,5 días 11-16.</p>
+
+<h2>Modelos, pesos y verificación</h2>
+<div class="tw"><table id="tblm"></table></div>
+<p class="note">Peso = habilidad base × 1/(1 + MAE reciente). MAE = error absoluto medio del modelo frente a NASA POWER (MERRA-2) en los últimos 7 días disponibles. Sesgo = media(modelo − observado), que se resta al pronóstico. Si NASA POWER no responde, se usan solo las habilidades base.</p>
+
+<h2>Criterios de siembra de maíz (editables)</h2>
+<div class="crit" id="crit"></div>
+<details><summary>Conectores privados opcionales (Meteoblue, IBM/The Weather Company)</summary>
+  <p class="note">Si usted tiene una clave de API de pago, péguela aquí y su pronóstico entra al ensamble como miembro adicional. Sin clave, el sistema funciona completo con los modelos abiertos. Las claves se guardan solo en este dispositivo.</p>
+  <div class="crit"><label>Meteoblue API key<input id="k_mb" type="text" placeholder="opcional"></label><label>IBM / The Weather Company API key<input id="k_twc" type="text" placeholder="opcional"></label></div>
+</details>
+<details><summary>Cómo se obtienen los datos (fuentes y método)</summary>
+  <ul class="note">
+    <li><b>Open-Meteo</b> (api.open-meteo.com): sirve, con licencia abierta, las salidas oficiales de ECMWF IFS 0,25°, NOAA GFS, DWD ICON, ECCC GEM, UKMO, JMA GSM, Météo-France ARPEGE y BoM ACCESS; además CAPE, isoterma 0 °C, humedad de suelo y precipitación horaria.</li>
+    <li><b>MET Norway</b> (api.met.no): pronóstico ECMWF post-procesado, 10 días. <b>7timer</b>: NOAA GFS, 8 días.</li>
+    <li><b>NASA POWER</b> (power.larc.nasa.gov): observación-reanálisis MERRA-2 diaria (T máx, T mín, precipitación) usada para calibrar los modelos en el punto.</li>
+    <li>Contexto estacional: DMC Boletín de Tendencias Climáticas, NOAA CPC ENSO, OMM GSCU (se consultan manualmente; enlaces al pie).</li>
+    <li>Método: corrección de sesgo tipo MOS por modelo y variable; ponderación por habilidad (inverso del error reciente); media y dispersión ponderadas; probabilidad por conteo de escenarios; decaimiento de confianza por plazo; umbrales agronómicos INIA.</li>
+  </ul>
+</details>
+
+<footer>
+  <p>Fuentes de referencia: <a href="https://climatologia.meteochile.gob.cl/application/publicaciones/boletinTendenciasClimaticas">DMC Chile</a> · <a href="https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso_advisory/ensodisc.shtml">NOAA CPC ENSO</a> · <a href="https://wmo.int/resources/publication-series/global-seasonal-climate-updates">OMM GSCU</a> · <a href="https://open-meteo.com/">Open-Meteo</a> · <a href="https://power.larc.nasa.gov/">NASA POWER</a> · <a href="https://api.met.no/">MET Norway</a>.</p>
+  <p>Este sistema entrega probabilidades, no certezas. Confianza alta en los días 1-3, media 4-6, baja 7-10, muy baja 11-16. La decisión final es del agricultor.</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+// ---------- Geografía ----------
+const REG={
+ "Región del Biobío · Provincia de Biobío":[["Los Ángeles",-37.47,-72.35,"valle"],["Mulchén",-37.72,-72.24,"valle"],["Nacimiento",-37.50,-72.67,"valle"],["Laja",-37.28,-72.71,"valle"],["San Rosendo",-37.27,-72.72,"valle"],["Cabrero",-37.03,-72.40,"valle"],["Yumbel",-37.10,-72.56,"valle"],["Negrete",-37.58,-72.47,"valle"],["Santa Bárbara",-37.67,-72.02,"precordillera"],["Quilaco",-37.68,-72.00,"precordillera"],["Quilleco",-37.47,-71.97,"precordillera"],["Tucapel",-37.29,-71.95,"precordillera"],["Antuco",-37.33,-71.68,"cordillera"],["Alto Biobío (Ralco)",-37.87,-71.62,"cordillera"]],
+ "Región del Biobío · Provincia de Concepción":[["Concepción",-36.83,-73.05,"costa"],["Talcahuano",-36.72,-73.12,"costa"],["Hualpén",-36.79,-73.09,"costa"],["San Pedro de la Paz",-36.84,-73.10,"costa"],["Chiguayante",-36.92,-73.03,"costa"],["Penco",-36.74,-72.99,"costa"],["Tomé",-36.62,-72.96,"costa"],["Coronel",-37.03,-73.15,"costa"],["Lota",-37.09,-73.16,"costa"],["Hualqui",-36.97,-72.94,"valle"],["Santa Juana",-37.17,-72.94,"valle"],["Florida",-36.82,-72.66,"valle"]],
+ "Región del Biobío · Provincia de Arauco":[["Arauco",-37.25,-73.32,"costa"],["Curanilahue",-37.48,-73.34,"costa"],["Lebu",-37.61,-73.65,"costa"],["Los Álamos",-37.63,-73.46,"costa"],["Cañete",-37.80,-73.40,"costa"],["Contulmo",-38.01,-73.23,"precordillera"],["Tirúa",-38.34,-73.50,"costa"]],
+ "Chile · capitales regionales":[["Arica",-18.48,-70.31,"costa"],["Iquique",-20.21,-70.15,"costa"],["Antofagasta",-23.65,-70.40,"costa"],["Copiapó",-27.37,-70.33,"valle"],["La Serena",-29.90,-71.25,"costa"],["Valparaíso",-33.05,-71.62,"costa"],["Santiago",-33.45,-70.67,"valle"],["Rancagua",-34.17,-70.74,"valle"],["Talca",-35.43,-71.65,"valle"],["Chillán",-36.61,-72.10,"valle"],["Concepción",-36.83,-73.05,"costa"],["Temuco",-38.74,-72.59,"valle"],["Valdivia",-39.81,-73.25,"costa"],["Puerto Montt",-41.47,-72.94,"costa"],["Coyhaique",-45.57,-72.07,"precordillera"],["Punta Arenas",-53.16,-70.91,"costa"]],
+ "Punto libre (lat/lon)":[["Coordenadas manuales",-37.47,-72.35,"valle"]]
+};
+const MODELS=[ // id, nombre, agencia, habilidad base (0-1), fuente
+ ["ecmwf_ifs025","ECMWF IFS 0,25°","ECMWF (Europa)",1.00,"om"],["icon_seamless","ICON","DWD (Alemania)",0.90,"om"],["ukmo_seamless","UKMO Unified Model","Met Office (Reino Unido)",0.90,"om"],
+ ["gfs_seamless","GFS","NOAA (EE. UU.)",0.82,"om"],["gem_seamless","GEM","Environment Canada",0.82,"om"],["jma_seamless","GSM","JMA (Japón)",0.80,"om"],
+ ["meteofrance_seamless","ARPEGE/AROME","Météo-France",0.80,"om"],["bom_access_global","ACCESS-G","BoM (Australia)",0.72,"om"],
+ ["met_ecmwf","ECMWF vía MET Norway","MET Norway",0.95,"met"],["gfs_7t","GFS vía 7timer","NOAA",0.70,"7t"],["meteoblue","Meteoblue multimodel","Meteoblue (privado)",0.95,"mb"],["twc","The Weather Company","IBM (privado)",0.95,"twc"]];
+const DEF={tsoil:12,tminOk:4,frost:2,rain3:15,rainDay:3,rainNext2:20,base:10,top:30,gddEm:70,pApto:0.7,deadline:"2026-11-10"};
+const LAB={tsoil:"T media móvil 3 d mínima (°C, proxy suelo ≥10-12 °C)",tminOk:"T mín aceptable día de siembra (°C)",frost:"Riesgo helada si T mín ≤ (°C)",rain3:"Lluvia máx 3 días previos (mm)",rainDay:"Lluvia máx día de siembra (mm)",rainNext2:"Lluvia máx 2 días siguientes (mm)",base:"T base maíz (°C)",top:"T tope maíz (°C)",gddEm:"GDD para emergencia",pApto:"Probabilidad mínima para APTO (0-1)",deadline:"Fecha límite de siembra (AAAA-MM-DD)"};
+let crit={...DEF}; try{const s=localStorage.getItem("agc_crit"); if(s) crit={...DEF,...JSON.parse(s)};}catch(e){}
+const $=id=>document.getElementById(id);
+const dkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const pd=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);};
+const DOW=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const fmt=d=>d.toLocaleDateString("es-CL",{weekday:"short",day:"numeric",month:"short"});
+const WMO={0:["☀️","Despejado"],1:["🌤️","Mayormente despejado"],2:["⛅","Parcial nublado"],3:["☁️","Nublado"],45:["🌫️","Niebla"],48:["🌫️","Niebla"],51:["🌦️","Llovizna"],53:["🌦️","Llovizna"],55:["🌧️","Llovizna densa"],61:["🌦️","Lluvia débil"],63:["🌧️","Lluvia"],65:["🌧️","Lluvia intensa"],71:["🌨️","Nieve"],73:["🌨️","Nieve"],75:["❄️","Nieve intensa"],80:["🌦️","Chubascos"],81:["🌧️","Chubascos"],82:["🌧️","Chubascos fuertes"],95:["⛈️","Tormenta"],96:["⛈️","Tormenta con granizo"],99:["⛈️","Tormenta con granizo"]};
+function icoFrom(mm,tmax,cape){ if(cape>=800&&mm>=1) return WMO[95]; if(mm>=20) return WMO[65]; if(mm>=5) return WMO[63]; if(mm>=1) return WMO[61]; if(mm>=0.3) return WMO[51]; return tmax>=20?WMO[0]:WMO[2]; }
+
+// ---------- UI geografía ----------
+const selReg=$("selReg"),selLoc=$("selLoc");
+for(const r in REG){const o=document.createElement("option");o.value=r;o.textContent=r;selReg.appendChild(o);}
+function fillLoc(){selLoc.innerHTML="";for(const l of REG[selReg.value]){const o=document.createElement("option");o.value=l[0];o.textContent=l[0]+(l[3]?" · "+l[3]:"");selLoc.appendChild(o);} setLatLon();}
+function setLatLon(){const l=REG[selReg.value].find(x=>x[0]===selLoc.value);if(l){$("lat").value=l[1];$("lon").value=l[2];}}
+selReg.addEventListener("change",fillLoc);selLoc.addEventListener("change",setLatLon);fillLoc();
+function zoneOf(){const l=REG[selReg.value].find(x=>x[0]===selLoc.value);return l?l[3]:"valle";}
+
+// ---------- Fetchers ----------
+const OM="https://api.open-meteo.com/v1/forecast";
+async function getJSON(url,opts){const r=await fetch(url,opts);if(!r.ok)throw new Error("HTTP "+r.status);return r.json();}
+async function fetchOM(lat,lon){
+  const ids=MODELS.filter(m=>m[4]==="om").map(m=>m[0]).join(",");
+  const u=`${OM}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=${ids}&past_days=7&forecast_days=16&timezone=America%2FSantiago`;
+  const j=await getJSON(u); const out={}; const t=j.daily.time;
+  for(const m of MODELS.filter(m=>m[4]==="om")){ const id=m[0]; const tx=j.daily["temperature_2m_max_"+id],tn=j.daily["temperature_2m_min_"+id],pp=j.daily["precipitation_sum_"+id]; if(!tx) continue; const o={}; t.forEach((k,i)=>{ if(tx[i]!=null&&tn[i]!=null) o[k]={tmax:tx[i],tmin:tn[i],mm:pp[i]??0}; }); out[id]=o; }
+  return out;
+}
+async function fetchOMhourly(lat,lon){ // ECMWF/best-match para riesgos
+  const u=`${OM}?latitude=${lat}&longitude=${lon}&hourly=precipitation,cape,freezing_level_height,soil_moisture_0_to_7cm,wind_gusts_10m&forecast_days=7&timezone=America%2FSantiago`;
+  const j=await getJSON(u); const h=j.hourly; const days={};
+  h.time.forEach((t,i)=>{ const k=t.slice(0,10); const o=days[k]||(days[k]={mm:0,maxh:0,cape:0,fl:0,sm:0,gust:0,n:0}); const p=h.precipitation[i]||0; o.mm+=p; o.maxh=Math.max(o.maxh,p); o.cape=Math.max(o.cape,h.cape[i]||0); o.fl=Math.max(o.fl,h.freezing_level_height[i]||0); o.sm=Math.max(o.sm,h.soil_moisture_0_to_7cm[i]||0); o.gust=Math.max(o.gust,h.wind_gusts_10m[i]||0); o.n++; });
+  return days;
+}
+async function fetchPOWER(lat,lon){
+  const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(end); start.setDate(start.getDate()-12);
+  const f=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  const j=await getJSON(`https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX,T2M_MIN,PRECTOTCORR&community=AG&longitude=${lon}&latitude=${lat}&start=${f(start)}&end=${f(end)}&format=JSON`);
+  const p=j.properties.parameter; const out={}; for(const k in p.T2M_MAX){ const key=k.slice(0,4)+"-"+k.slice(4,6)+"-"+k.slice(6,8); if(p.T2M_MAX[k]>-900&&p.T2M_MIN[k]>-900) out[key]={tmax:p.T2M_MAX[k],tmin:p.T2M_MIN[k],mm:p.PRECTOTCORR[k]>-900?p.PRECTOTCORR[k]:null}; } return out;
+}
+async function fetchMET(lat,lon){
+  const j=await getJSON(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`); const out={};
+  for(const ts of j.properties.timeseries){ const t=new Date(new Date(ts.time).getTime()-3*3600e3); const k=t.toISOString().slice(0,10); const o=out[k]||(out[k]={tmin:99,tmax:-99,mm:0}); const T=ts.data.instant.details.air_temperature; o.tmin=Math.min(o.tmin,T); o.tmax=Math.max(o.tmax,T); const n1=ts.data.next_1_hours,n6=ts.data.next_6_hours,uh=new Date(ts.time).getUTCHours(); if(n1) o.mm+=n1.details.precipitation_amount||0; else if(n6&&[0,6,12,18].includes(uh)) o.mm+=n6.details.precipitation_amount||0; }
+  for(const k in out) out[k].mm=+out[k].mm.toFixed(1); return out;
+}
+async function fetch7t(lat,lon){
+  const j=await getJSON(`https://www.7timer.info/bin/civil.php?lon=${lon}&lat=${lat}&ac=0&unit=metric&output=json&tzshift=-3`); const i=j.init; const base=Date.UTC(+i.slice(0,4),+i.slice(4,6)-1,+i.slice(6,8),+i.slice(8,10)); const MM={0:0,1:0.5,2:3,3:10,4:25,5:40,6:60,7:80,8:100,9:120}; const out={};
+  for(const p of j.dataseries){ const t=new Date(base+p.timepoint*3600e3-3*3600e3); const k=t.toISOString().slice(0,10); const o=out[k]||(out[k]={tmin:99,tmax:-99,mm:0,n:0}); o.tmin=Math.min(o.tmin,p.temp2m); o.tmax=Math.max(o.tmax,p.temp2m); o.mm=Math.max(o.mm,MM[p.prec_amount]||0); o.n++; }
+  for(const k in out) if(out[k].n<6) delete out[k]; return out;
+}
+async function fetchMB(lat,lon,key){ const j=await getJSON(`https://my.meteoblue.com/packages/basic-day?apikey=${key}&lat=${lat}&lon=${lon}&format=json`); const d=j.data_day; const out={}; d.time.forEach((k,i)=>{out[k]={tmax:d.temperature_max[i],tmin:d.temperature_min[i],mm:d.precipitation[i]};}); return out; }
+async function fetchTWC(lat,lon,key){ const j=await getJSON(`https://api.weather.com/v3/wx/forecast/daily/10day?geocode=${lat},${lon}&format=json&units=m&language=es-CL&apiKey=${key}`); const out={}; j.validTimeLocal.forEach((t,i)=>{ if(j.calendarDayTemperatureMax[i]!=null) out[t.slice(0,10)]={tmax:j.calendarDayTemperatureMax[i],tmin:j.calendarDayTemperatureMin[i],mm:j.qpf[i]||0}; }); return out; }
+
+// ---------- Motor de ensamble ----------
+function wstd(vals,ws,mean){let s=0,W=0;vals.forEach((v,i)=>{s+=ws[i]*(v-mean)**2;W+=ws[i];});return W?Math.sqrt(s/W):0;}
+function leadFactor(lead){return lead<=3?1:lead<=6?0.85:lead<=10?0.7:0.5;}
+function run(models,obs,hourly,zone){
+  const today=new Date();today.setHours(0,0,0,0);const tk=dkey(today);
+  // 1) verificación y corrección de sesgo por modelo
+  const info={};
+  for(const m of MODELS){ const d=models[m[0]]; if(!d) continue; let n=0,eT=0,eN=0,bT=0,bN=0,eP=0;
+    if(obs) for(const k in obs){ if(d[k]&&k<tk){ const o=obs[k]; n++; eT+=Math.abs(d[k].tmax-o.tmax); eN+=Math.abs(d[k].tmin-o.tmin); bT+=d[k].tmax-o.tmax; bN+=d[k].tmin-o.tmin; if(o.mm!=null) eP+=Math.abs(d[k].mm-o.mm); } }
+    const mae=n?(eT+eN)/(2*n):null; const w=m[3]*(mae==null?1:1/(1+mae)); info[m[0]]={name:m[1],agency:m[2],base:m[3],n,mae,maeP:n?eP/n:null,bT:n?bT/n:0,bN:n?bN/n:0,w,days:Object.keys(d).filter(k=>k>=tk).length}; }
+  // 2) días
+  const end=pd(crit.deadline); const days=[]; const start=new Date(today); start.setDate(start.getDate()-Math.min(7,today.getDate()-1)); // desde inicio de ventana reciente
+  const first=new Date(Math.min(start,pd("2026-10-12")));
+  for(let d=new Date(first); d<=end; d.setDate(d.getDate()+1)){ const k=dkey(d); const members=[];
+    for(const id in info){ const v=models[id][k]; if(!v) continue; members.push({id,w:info[id].w,tmax:v.tmax-info[id].bT,tmin:v.tmin-info[id].bN,mm:Math.max(0,v.mm)}); }
+    const lead=Math.round((d-today)/864e5); const o={d:new Date(d),k,lead,members,past:d<today};
+    if(members.length){ const W=members.reduce((s,m)=>s+m.w,0); o.tmax=+(members.reduce((s,m)=>s+m.w*m.tmax,0)/W).toFixed(1); o.tmin=+(members.reduce((s,m)=>s+m.w*m.tmin,0)/W).toFixed(1); o.mm=+(members.reduce((s,m)=>s+m.w*m.mm,0)/W).toFixed(1);
+      o.sdT=wstd(members.map(m=>m.tmax),members.map(m=>m.w),o.tmax); o.sdN=wstd(members.map(m=>m.tmin),members.map(m=>m.w),o.tmin); o.sdP=wstd(members.map(m=>m.mm),members.map(m=>m.w),o.mm);
+      o.pDry=members.filter(m=>m.mm<1).reduce((s,m)=>s+m.w,0)/W; o.pWet10=members.filter(m=>m.mm>10).reduce((s,m)=>s+m.w,0)/W; o.pFrost=members.filter(m=>m.tmin<=crit.frost).reduce((s,m)=>s+m.w,0)/W; o.W=W; o.layer=o.past?"past":(lead<=10?"real":"tend"); }
+    else o.layer=o.past?"past":"clim";
+    days.push(o); }
+  // 3) escenarios por modelo → P(APTO)
+  const ids=Object.keys(info);
+  for(let i=0;i<days.length;i++){ const x=days[i]; if(x.tmin==null){x.sem="SIN DATO";continue;}
+    x.gdd=Math.max(0,(Math.min(x.tmax,crit.top)+Math.max(x.tmin,crit.base))/2-crit.base);
+    let pA=0,W=0;
+    for(const id of ids){ const g=j=>{const y=days[j];return y&&y.members.find(m=>m.id===id);}; const me=g(i); if(!me) continue; W+=me.w;
+      const prev=[1,2,3].map(j=>g(i-j)).filter(Boolean), m3=[0,1,2].map(j=>g(i-j)), nx=[1,2].map(j=>g(i+j));
+      if(m3.some(v=>!v)||nx.some(v=>!v)) continue;
+      const tmed3=m3.reduce((s,v)=>s+(v.tmin+v.tmax)/2,0)/3, r3=prev.reduce((s,v)=>s+v.mm,0), rn=nx.reduce((s,v)=>s+v.mm,0);
+      const apto=me.tmin>crit.frost&&me.mm<=10&&tmed3>=crit.tsoil&&me.tmin>=crit.tminOk&&r3<=crit.rain3&&me.mm<=crit.rainDay&&rn<=crit.rainNext2; if(apto) pA+=me.w; }
+    x.pApto=W?pA/W:0; x.conf=leadFactor(Math.max(1,x.lead)); x.pAptoAdj=x.pApto*x.conf;
+    const prevC=days.slice(Math.max(0,i-3),i).filter(y=>y.mm!=null); x.rain3=prevC.reduce((s,y)=>s+y.mm,0);
+    const m3c=days.slice(Math.max(0,i-2),i+1).filter(y=>y.tmin!=null); x.tmed3=m3c.length===3?m3c.reduce((s,y)=>s+(y.tmin+y.tmax)/2,0)/3:null;
+    if(x.pFrost>=0.2||x.pWet10>=0.3) x.sem="NO"; else if(x.pAptoAdj>=crit.pApto) x.sem="APTO"; else if(x.pApto>=0.4) x.sem="PRECAUCIÓN"; else x.sem=x.mm>crit.rainDay||x.pFrost>0?"NO":"PRECAUCIÓN"; }
+  for(let i=0;i<days.length;i++){ const x=days[i]; if(x.gdd==null) continue; let a=0,f=null; for(let j=i;j<days.length;j++){ if(days[j].gdd==null) break; a+=days[j].gdd; if(a>=crit.gddEm){f=days[j].d;break;} } x.emerg=f; }
+  // 4) riesgos hidrometeorológicos
+  const risks=[]; if(hourly){ const ks=Object.keys(hourly).sort(); ks.forEach((k,i)=>{ const h=hourly[k]; const r72=[0,1,2].map(j=>hourly[ks[i-j]]).filter(Boolean).reduce((s,v)=>s+v.mm,0);
+      const heavy=h.mm>=30?(h.mm>=60?3:2):(h.mm>=15?1:0); const inten=h.maxh>=10?2:(h.maxh>=5?1:0);
+      const mount=zone==="cordillera"||zone==="precordillera"; const alu=mount?(h.mm>=30&&h.fl>=2500?3:(h.mm>=20&&h.fl>=2000?2:(h.mm>=10&&h.fl>=2500?1:0))):(h.maxh>=10&&h.mm>=30?1:0);
+      const inu=r72>=80?3:(r72>=50||(h.sm>=0.40&&h.mm>=40))?2:(r72>=30&&h.sm>=0.35)?1:0; const storm=h.cape>=1500&&h.mm>=1?3:(h.cape>=800&&h.mm>=1?2:(h.cape>=400?1:0)); const wind=h.gust>=90?3:(h.gust>=70?2:(h.gust>=50?1:0));
+      risks.push({k,mm:h.mm,maxh:h.maxh,fl:h.fl,cape:h.cape,sm:h.sm,gust:h.gust,r72,heavy:Math.max(heavy,inten),alu,inu,storm,wind}); }); }
+  return {info,days,risks};
+}
+
+// ---------- Render ----------
+let last=null;
+function render(res,st,locName){
+  const {info,days,risks}=res; const fut=days.filter(x=>x.layer==="real"), apt=fut.filter(x=>x.sem==="APTO"); const frost=fut.filter(x=>x.pFrost>=0.2);
+  const runs=[];let r=[];for(const x of fut){if(x.sem==="APTO")r.push(x);else{if(r.length)runs.push(r);r=[];}}if(r.length)runs.push(r); const best=runs.sort((a,b)=>b.length-a.length)[0];
+  const rain=fut.reduce((s,x)=>s+x.mm,0), gdd=fut.reduce((s,x)=>s+x.gdd,0); const left=Math.round((pd(crit.deadline)-new Date().setHours(0,0,0,0))/864e5);
+  let cls="warn",head="Sin ventana APTA en el horizonte de 10 días",body="Revise de nuevo en 2-3 días; la confianza mejora al acercarse la fecha.";
+  if(best&&best.length>=3){cls="ok";head=`Ventana recomendada: ${fmt(best[0].d)} → ${fmt(best[best.length-1].d)} (${best.length} días APTO, P media ${(best.reduce((s,x)=>s+x.pApto,0)/best.length*100).toFixed(0)} %)`;body=`Siembre en los primeros 2-3 días de la ventana. Emergencia estimada sembrando el ${fmt(best[0].d)}: ${best[0].emerg?fmt(best[0].emerg):"≈ "+Math.round(crit.gddEm/Math.max(0.1,gdd/Math.max(1,fut.length)))+" días (fuera del horizonte)"}.`;}
+  else if(best){cls="warn";head=`Solo ${best.length} día(s) APTO: ${best.map(x=>fmt(x.d)).join(", ")}`;body="Ventana corta: viable solo si la sembradora cubre la superficie en ese plazo.";}
+  if(frost.length) body+=` ⚠️ Probabilidad de helada ≥20 %: ${frost.map(x=>fmt(x.d)+" ("+(x.pFrost*100).toFixed(0)+" %)").join(", ")}.`;
+  const nM=Object.keys(info).length, nV=Object.values(info).filter(i=>i.n>0).length;
+  $("summary").innerHTML=`<div class="tiles">
+   <div class="tile"><div class="k">Modelos activos · verificados</div><div class="v">${nM} · ${nV}</div><div class="s">${st.power?"corregidos con NASA POWER":"sin corrección (POWER no respondió)"}</div></div>
+   <div class="tile"><div class="k">Días con pronóstico</div><div class="v">${fut.length}</div><div class="s">+${days.filter(x=>x.layer==="tend").length} de tendencia</div></div>
+   <div class="tile"><div class="k">Días APTO</div><div class="v">${apt.length}</div><div class="s">de ${fut.length} con dato</div></div>
+   <div class="tile"><div class="k">Lluvia · GDD (horizonte)</div><div class="v">${rain.toFixed(0)} mm · ${gdd.toFixed(0)}</div><div class="s">consenso ponderado</div></div>
+   <div class="tile"><div class="k">Días al plazo</div><div class="v">${left}</div><div class="s">${crit.deadline}</div></div></div>
+   <div class="verdict ${cls}"><p class="by">Decisión · ${locName}</p><p><b>${head}</b></p><p>${body}</p></div>`;
+  // alertas
+  const lv=["Sin aviso","Atención","Alerta","Alarma"]; const mx=(f)=>risks.reduce((m,r)=>r[f]>m.l?{l:r[f],k:r.k}:m,{l:0,k:null});
+  const A=[["Lluvia intensa","heavy",r=>`${r.mm.toFixed(0)} mm/24 h · máx ${r.maxh.toFixed(1)} mm/h`],["Tormenta eléctrica","storm",r=>`CAPE ${r.cape.toFixed(0)} J/kg`],["Aluvión / remoción en masa","alu",r=>`${r.mm.toFixed(0)} mm · isoterma 0 °C ${r.fl.toFixed(0)} m`],["Inundación / anegamiento","inu",r=>`72 h: ${r.r72.toFixed(0)} mm · suelo ${r.sm.toFixed(2)} m³/m³`],["Viento fuerte","wind",r=>`ráfagas ${r.gust.toFixed(0)} km/h`]];
+  $("alerts").innerHTML=risks.length?A.map(([n,f,s])=>{const m=mx(f);const rr=risks.find(r=>r.k===m.k)||risks[0];return `<div class="alert l${m.l}"><div class="k">${n}</div><div class="v">${lv[m.l]}${m.k?" · "+fmt(pd(m.k)):""}</div><div class="s">${m.k?s(rr):"sin señal en 7 días"}</div></div>`;}).join(""):`<div class="alert"><div class="k">Riesgos</div><div class="v">Sin datos horarios</div><div class="s">Open-Meteo no respondió; las alertas requieren CAPE, isoterma 0 °C y humedad de suelo.</div></div>`;
+  // calendario
+  $("calrange").textContent=`${fmt(days[0].d)} → ${fmt(days[days.length-1].d)}`;
+  let h=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x=>`<div class="dow">${x}</div>`).join(""); const off=(days[0].d.getDay()+6)%7; for(let i=0;i<off;i++)h+="<div></div>";
+  for(const x of days){ const cl=x.layer==="past"?"past":x.layer==="real"?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):x.layer; const rk=risks.find(r=>r.k===x.k); const [ico,txt]=x.tmin!=null?icoFrom(x.mm,x.tmax,rk?rk.cape:0):["▫️",x.layer==="clim"?"Sin pronóstico":"—"];
+    h+=`<div class="day ${cl}" title="${x.k}"><div class="n">${x.d.getDate()} <small>${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][x.d.getMonth()]}</small></div><div class="ico">${ico}</div><div style="font-size:.64rem">${txt}</div>${x.tmin!=null?`<div class="t">${x.tmin}°/${x.tmax}° · ${x.mm} mm</div><div class="p">P apto ${(x.pApto*100).toFixed(0)} % · ${x.members.length} mod.</div>`:""}<span class="pill ${x.tmin!=null?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):"sin"}">${x.layer==="past"?"Pasado":x.sem}</span></div>`; }
+  $("cal").innerHTML=h;
+  // tabla diaria
+  let t=`<tr><th>Fecha</th><th>Plazo</th><th>Modelos</th><th>T mín</th><th>±</th><th>T máx</th><th>±</th><th>Lluvia</th><th>±</th><th>P seco</th><th>P >10 mm</th><th>P helada</th><th>GDD</th><th>P APTO</th><th>Conf.</th><th>Semáforo</th></tr>`;
+  for(const x of days.filter(x=>x.tmin!=null)) t+=`<tr><td>${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}</td><td>${x.lead}</td><td>${x.members.length}</td><td>${x.tmin}</td><td>${x.sdN.toFixed(1)}</td><td>${x.tmax}</td><td>${x.sdT.toFixed(1)}</td><td>${x.mm}</td><td>${x.sdP.toFixed(1)}</td><td>${(x.pDry*100).toFixed(0)} %</td><td>${(x.pWet10*100).toFixed(0)} %</td><td>${(x.pFrost*100).toFixed(0)} %</td><td>${x.gdd.toFixed(1)}</td><td><div class="pbar"><i style="width:${(x.pApto*100).toFixed(0)}%"></i></div>${(x.pApto*100).toFixed(0)} %</td><td>×${x.conf}</td><td><span class="pill ${x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"}" style="color:#fff">${x.sem}</span></td></tr>`;
+  $("tbl").innerHTML=t;
+  let tm=`<tr><th>Modelo</th><th>Agencia</th><th>Habilidad base</th><th>Días verificados</th><th>MAE T (°C)</th><th>MAE lluvia (mm)</th><th>Sesgo T máx</th><th>Sesgo T mín</th><th>Peso</th><th>Días futuros</th></tr>`;
+  const Wt=Object.values(info).reduce((s,i)=>s+i.w,0);
+  for(const id in info){const i=info[id];tm+=`<tr><td>${i.name}</td><td>${i.agency}</td><td>${i.base.toFixed(2)}</td><td>${i.n}</td><td>${i.mae!=null?i.mae.toFixed(2):"—"}</td><td>${i.maeP!=null?i.maeP.toFixed(2):"—"}</td><td>${i.bT.toFixed(2)}</td><td>${i.bN.toFixed(2)}</td><td>${(i.w/Wt*100).toFixed(1)} %</td><td>${i.days}</td></tr>`;}
+  $("tblm").innerHTML=tm;
+  last={head,body,locName,fut,risks};
+}
+function renderStatus(st){ $("status").innerHTML=Object.entries(st).map(([k,v])=>`<span class="${v.ok?"on":"off"}">${v.msg}</span>`).join(""); }
+function renderCrit(){ $("crit").innerHTML=Object.keys(DEF).map(k=>`<label>${LAB[k]}<input id="c_${k}" type="${k==="deadline"?"text":"number"}" step="${k==="pApto"?0.05:1}" value="${crit[k]}"></label>`).join("")+`<label><span>&nbsp;</span><button type="button" id="btnReset" class="ghost">Restablecer</button></label>`;
+  document.querySelectorAll("#crit input").forEach(i=>i.addEventListener("change",()=>{const k=i.id.slice(2);crit[k]=k==="deadline"?i.value:parseFloat(i.value);try{localStorage.setItem("agc_crit",JSON.stringify(crit));}catch(e){} if(cache) {const r=run(cache.models,cache.obs,cache.hourly,cache.zone);render(r,cache.st,cache.loc);} }));
+  $("btnReset").addEventListener("click",()=>{crit={...DEF};try{localStorage.removeItem("agc_crit");}catch(e){}renderCrit();if(cache){const r=run(cache.models,cache.obs,cache.hourly,cache.zone);render(r,cache.st,cache.loc);}});
+  try{$("k_mb").value=localStorage.getItem("agc_mb")||"";$("k_twc").value=localStorage.getItem("agc_twc")||"";}catch(e){}
+  ["k_mb","k_twc"].forEach(id=>$(id).addEventListener("change",()=>{try{localStorage.setItem(id==="k_mb"?"agc_mb":"agc_twc",$(id).value.trim());}catch(e){}}));
+}
+let cache=null;
+async function main(){
+  const lat=parseFloat($("lat").value),lon=parseFloat($("lon").value); if(isNaN(lat)||isNaN(lon)) return; const loc=selReg.value.startsWith("Punto")?`${lat}, ${lon}`:selLoc.value; const zone=zoneOf();
+  $("btnRun").disabled=true; const st={}; renderStatus({a:{ok:true,msg:"Consultando agencias…"}});
+  const models={}; let obs=null,hourly=null;
+  const jobs=[
+    fetchOM(lat,lon).then(r=>{Object.assign(models,r);st.om={ok:true,msg:`Open-Meteo: ${Object.keys(r).length} modelos (ECMWF, ICON, UKMO, GFS, GEM, JMA, ARPEGE, ACCESS)`};}).catch(e=>st.om={ok:false,msg:"Open-Meteo no disponible: "+e.message}),
+    fetchOMhourly(lat,lon).then(r=>{hourly=r;st.omh={ok:true,msg:"Riesgos: CAPE, isoterma 0 °C, humedad de suelo, ráfagas (7 días)"};}).catch(e=>st.omh={ok:false,msg:"Datos horarios de riesgo no disponibles"}),
+    fetchPOWER(lat,lon).then(r=>{obs=r;st.power={ok:true,msg:`NASA POWER: ${Object.keys(r).length} días observados para calibración`};}).catch(e=>st.power={ok:false,msg:"NASA POWER no disponible: "+e.message}),
+    fetchMET(lat,lon).then(r=>{models.met_ecmwf=r;st.met={ok:true,msg:"MET Norway (ECMWF) 10 días"};}).catch(e=>st.met={ok:false,msg:"MET Norway no disponible"}),
+    fetch7t(lat,lon).then(r=>{models.gfs_7t=r;st.t7={ok:true,msg:"7timer (GFS) 8 días"};}).catch(e=>st.t7={ok:false,msg:"7timer no disponible"})];
+  const kmb=$("k_mb").value.trim(),ktwc=$("k_twc").value.trim();
+  if(kmb) jobs.push(fetchMB(lat,lon,kmb).then(r=>{models.meteoblue=r;st.mb={ok:true,msg:"Meteoblue conectado"};}).catch(e=>st.mb={ok:false,msg:"Meteoblue: "+e.message}));
+  if(ktwc) jobs.push(fetchTWC(lat,lon,ktwc).then(r=>{models.twc=r;st.twc={ok:true,msg:"The Weather Company conectado"};}).catch(e=>st.twc={ok:false,msg:"The Weather Company: "+e.message}));
+  await Promise.all(jobs);
+  st.z={ok:true,msg:`${loc} · zona ${zone} · ${new Date().toLocaleString("es-CL")}`}; renderStatus(st);
+  if(!Object.keys(models).length){ $("summary").innerHTML=`<div class="verdict bad"><p><b>Ningún modelo respondió.</b></p><p>Revise la conexión a internet. Si abre este archivo dentro de una app que bloquea conexiones, ábralo en Chrome, Safari o Firefox.</p></div>`; $("btnRun").disabled=false; return; }
+  cache={models,obs,hourly,zone,st,loc}; const r=run(models,obs,hourly,zone); render(r,st,loc); $("btnRun").disabled=false;
+}
+$("btnRun").addEventListener("click",main);
+$("btnShare").addEventListener("click",()=>{ if(!last) return; const txt=`AgroCast Biobío · ${last.locName}\n${last.head}\n${last.body}\n`+last.fut.slice(0,10).map(x=>`${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}: ${x.tmin}°/${x.tmax}°, ${x.mm} mm, P apto ${(x.pApto*100).toFixed(0)} % → ${x.sem}`).join("\n"); navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{$("btnShare").textContent="Copiado ✓";setTimeout(()=>$("btnShare").textContent="Copiar resumen",1500);}).catch(()=>{prompt("Copie el texto:",txt);}); });
+renderCrit(); main();
+})();
+</script>
+</body>
+</html>
