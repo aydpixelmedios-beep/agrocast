@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AgroCast Biobío by RamiroKosher · v2</title>
+<title>AgroCast Biobío by RamiroKosher · v3</title>
 <meta name="description" content="Ensamble multi-modelo con corrección satelital, alertas de lluvia intensa, tormenta, aluvión e inundación, y semáforo de siembra de maíz. Chile, Región del Biobío.">
 <style>
 :root{--bg:#f4f5ef;--panel:#fff;--fg:#1c261c;--muted:#5d6b5d;--line:#d6dbcd;--accent:#2b6a3b;--ok:#2e9e4f;--ok-bg:#dcf5e1;--warn:#d6891c;--warn-bg:#fdeed2;--bad:#c73d37;--bad-bg:#fbdfdd;--sev:#7a1f9c;--sev-bg:#efdcf7;--tend:#fdf5c6;--clim:#e8eae4;--past:#e3ebda;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
@@ -49,12 +49,15 @@ th{font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--mu
 details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}summary{cursor:pointer;font-weight:600}
 .pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--accent)}
 footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
+.seis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.q{font-family:var(--mono);font-size:.74rem}
+.warnbox{border:1px solid var(--warn);background:var(--warn-bg);border-radius:10px;padding:10px 12px;font-size:.84rem}
 @media (max-width:640px){.day{min-height:104px;padding:4px 3px 3px}.day .p{display:none}.day .n{font-size:.78rem}.day .n small{display:none}.day .ico{font-size:1rem}.day .t{font-size:.6rem}.day .pill{font-size:.5rem;padding:1px 4px;letter-spacing:0}.day div[style]{font-size:.56rem!important}}
 </style>
 </head>
 <body>
 <header>
-  <div class="by">AgroCast Biobío · by RamiroKosher</div>
+  <div class="by">AgroCast Biobío · by RamiroKosher · v3.1 (12-10-2026)</div>
   <h1>Pronóstico de ensamble y decisión agrícola</h1>
   <p class="sub">Versión 2. Combina 8 modelos deterministas de 7 agencias más los ensambles completos del ECMWF (51 miembros), GFS (31), ICON (40) y GEM (21): más de 140 escenarios físicos por día. Corrige cada modelo contra NASA POWER, ERA5-Land y las observaciones locales que usted pegue (Agromet-INIA o estación propia) en los últimos 30 días, pondera por habilidad y entrega probabilidades. Usa temperatura de suelo modelada (0-7 cm) para el criterio del maíz. Alertas de lluvia intensa, tormenta eléctrica, aluvión e inundación. Semáforo de siembra de maíz con criterios editables.</p>
   <div class="bar">
@@ -72,8 +75,17 @@ footer{margin-top:28px;font-size:.74rem;color:var(--muted)}
 
 <h2>Alertas hidrometeorológicas (próximos 7 días)</h2>
 <div class="alerts" id="alerts"></div>
-<p class="note">Aluvión: lluvia ≥30 mm/24 h con isoterma 0 °C alta (≥2.500 m) en zona de precordillera/cordillera, o intensidad ≥10 mm/h. Inundación: acumulado 72 h ≥80 mm o suelo saturado (humedad 0-7 cm ≥0,40 m³/m³) con ≥40 mm/24 h. Tormenta: energía convectiva CAPE ≥800 J/kg con precipitación (el CAPE es el indicador físico de la carga eléctrica potencial de la atmósfera). Niveles: 0 sin aviso · 1 atención · 2 alerta · 3 alarma.</p>
+<p class="note">Aluvión: lluvia ≥30 mm/24 h con isoterma 0 °C alta (≥2.500 m) en zona de precordillera/cordillera, o intensidad ≥10 mm/h. Inundación: acumulado 72 h ≥80 mm o suelo saturado (humedad 0-7 cm ≥0,40 m³/m³) con ≥40 mm/24 h. Tormenta: energía convectiva CAPE ≥800 J/kg con precipitación (el CAPE es el indicador físico de la carga eléctrica potencial de la atmósfera). Ola de calor (criterio DMC adaptado): T máx ≥30 °C tres días seguidos = alerta; ≥34 °C = alarma. Helada: T mín ≤2 °C = atención, ≤0 °C = alerta, ≤−2 °C = alarma. Niveles: 0 sin aviso · 1 atención · 2 alerta · 3 alarma.</p>
 
+<h2>Vigilancia sísmica (radio 300 km)</h2>
+<div class="warnbox"><b>Lo que este módulo puede y no puede hacer.</b> Nadie en el mundo puede predecir la fecha, lugar y magnitud de un terremoto; el experimento de la Universidad de Texas (2023) acertó ~70 % de localizaciones con ventanas de una semana y 320 km de radio, y no es operativo. Lo que sí es ciencia establecida y aquí se implementa: (1) sismicidad en tiempo real (USGS y Centro Sismológico Nacional), (2) intensidad estimada en su comuna para cada evento, (3) probabilidad estadística de réplicas tras un sismo fuerte (modelo Reasenberg-Jones / ley de Omori), (4) detección de anomalías de tasa y de valor b (Gutenberg-Richter), y (5) la física de la alerta temprana por ondas P, que en Chile entrega el sistema de alertas sísmicas de Android (Google) a los teléfonos: actívelo en Ajustes → Seguridad y emergencia → Alertas de terremoto.</div>
+<div class="seis" id="seis" style="margin-top:8px"></div>
+<div class="tw" style="margin-top:8px"><table id="tblq"></table></div>
+<h2>Pronóstico sísmico semanal · todo Chile (modelo ETAS-Chile)</h2>
+<p class="note">Probabilidad de al menos un sismo M≥5,0 en 24 h, 7 y 30 días dentro de 300 km de cada ciudad. Tasa de fondo: catálogo USGS 2000-hoy (M≥4,5, profundidad ≤150 km). Disparo: sismos de los últimos 60 días según Omori-Utsu con núcleo espacial dependiente de la magnitud (radio de ruptura 10^(0,5M−1,8) km) y parámetros b y K ajustados al catálogo de cada región. Cada pronóstico se registra en el dispositivo y se verifica automáticamente a los 7 días (puntaje de Brier), como en los centros de prueba CSEP. Ingredientes tomados del experimento de la Universidad de Texas (2023): ventana semanal, radio regional y aprendizaje de la tasa reciente; su red neuronal sobre formas de onda no es reproducible sin las señales crudas de las estaciones. "Anomalía" = probabilidad actual ≥2× la de fondo. Esto es un pronóstico estadístico, no una predicción: en Chile la probabilidad semanal de fondo ya es alta en el norte y centro.</p>
+<div class="tw"><table id="tblf"></table></div>
+<div class="legend"><span>Fuente: USGS ComCat. La tabla se calcula en su teléfono al abrir la página; tarda unos segundos.</span></div>
+<p class="note">Intensidad estimada con la ecuación de predicción de intensidad para subducción chilena (Mercalli): I = 1,47·M − 2,4·log₁₀(R_hip) + 3,1 (ajuste tipo Bakun-Wentworth). Ventana de alerta temprana = tiempo S − tiempo P = D·(1/3,5 − 1/6,8) s. Réplicas: P(M≥5 en 7 días) según Reasenberg-Jones con parámetros genéricos (a=−1,67, b=0,91, p=1,08, c=0,05) para el mayor sismo M≥5,5 de los últimos 30 días.</p>
 <h2>Calendario de decisión <span id="calrange" class="note"></span></h2>
 <div class="cal" id="cal"></div>
 <div class="legend"><span><i style="background:var(--ok-bg)"></i>APTO (P≥70 %)</span><span><i style="background:var(--warn-bg)"></i>PRECAUCIÓN</span><span><i style="background:var(--bad-bg)"></i>NO</span><span><i style="background:var(--tend)"></i>Tendencia (días 11-16, baja confianza)</span><span><i style="background:var(--clim)"></i>Sin pronóstico numérico</span><span><i style="background:var(--past)"></i>Pasado</span></div>
@@ -185,6 +197,79 @@ async function fetchArchive(lat,lon){
   const out={}; j.daily.time.forEach((k,i)=>{ if(j.daily.temperature_2m_max[i]!=null) out[k]={tmax:j.daily.temperature_2m_max[i],tmin:j.daily.temperature_2m_min[i],mm:j.daily.precipitation_sum[i]}; }); return out;
 }
 function parseObs(txt){ const out={}; (txt||"").split(/\n+/).forEach(l=>{ const p=l.trim().split(/[;,\t]/); if(p.length<4) return; const k=p[0].trim(); if(!/^\d{4}-\d{2}-\d{2}$/.test(k)) return; const tx=parseFloat(p[1]),tn=parseFloat(p[2]),mm=parseFloat(p[3]),ts=p[4]!=null?parseFloat(p[4]):NaN; if(isNaN(tx)||isNaN(tn)) return; out[k]={tmax:tx,tmin:tn,mm:isNaN(mm)?null:mm,tsoil:isNaN(ts)?null:ts}; }); return out; }
+function hav(a,b,c,d){const R=6371,t=x=>x*Math.PI/180;const dl=t(c-a),dn=t(d-b);const h=Math.sin(dl/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+async function fetchUSGS(lat,lon){
+  const st=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  const j=await getJSON(`https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=${st}&latitude=${lat}&longitude=${lon}&maxradiuskm=300&minmagnitude=2.5&orderby=time`);
+  return j.features.map(f=>({t:new Date(f.properties.time),m:f.properties.mag,dep:f.geometry.coordinates[2],lat:f.geometry.coordinates[1],lon:f.geometry.coordinates[0],place:f.properties.place,src:"USGS",url:f.properties.url}));
+}
+async function fetchCSN(lat,lon){
+  const j=await getJSON("https://api.gael.cloud/general/public/sismos"); const out=[];
+  for(const q of j){ const la=parseFloat(q.Latitud),lo=parseFloat(q.Longitud); if(isNaN(la)) continue; const d=hav(lat,lon,la,lo); if(d>300) continue; out.push({t:new Date(q.Fecha.replace(" ","T")+"-03:00"),m:parseFloat(q.Magnitud),dep:parseFloat(q.Profundidad),lat:la,lon:lo,place:q.RefGeografica,src:"CSN",url:"https://www.sismologia.cl"}); }
+  return out;
+}
+let CAT=null;
+async function fetchCatalog(){
+  if(CAT) return CAT; const since="2000-01-01";
+  const u=`https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime=${since}&minlatitude=-56.5&maxlatitude=-17&minlongitude=-77&maxlongitude=-65.5&minmagnitude=4.5&orderby=time-asc`;
+  const r=await fetch(u); if(!r.ok) throw new Error("HTTP "+r.status); const txt=await r.text(); const lines=txt.split("\n"); const hdr=lines[0].split(","); const it=hdr.indexOf("time"),ila=hdr.indexOf("latitude"),ilo=hdr.indexOf("longitude"),idp=hdr.indexOf("depth"),im=hdr.indexOf("mag");
+  const ev=[]; for(let i=1;i<lines.length;i++){ const c=lines[i].split(","); if(c.length<im+1) continue; const m=parseFloat(c[im]); if(isNaN(m)) continue; ev.push({t:Date.parse(c[it]),lat:parseFloat(c[ila]),lon:parseFloat(c[ilo]),dep:parseFloat(c[idp])||10,m}); }
+  CAT={ev,since:Date.parse(since)}; return CAT;
+}
+function fitRegion(near,now){
+  // valor b regional (Aki, Mc=4.5) y productividad K ajustada a secuencias observadas (M≥6.5 mainshocks, 30 d, 100 km)
+  const ms=near.map(e=>e.m); const b=ms.length>=30?Math.min(1.3,Math.max(0.7,0.4343/((ms.reduce((s,m)=>s+m,0)/ms.length)-4.45))):1.0;
+  const mains=near.filter(e=>e.m>=6.5&&now-e.t>35*864e5); let obs=0,exp=0; const c=0.02,pp=1.1,al=1.0,K0=0.02;
+  for(const m of mains){ const sig=Math.min(300,Math.pow(10,0.5*m.m-1.8)); const n=near.filter(e=>e.t>m.t&&e.t<=m.t+30*864e5&&hav(m.lat,m.lon,e.lat,e.lon)<=sig).length; obs+=n; const f=t=>Math.pow(t+c,1-pp)/(1-pp); exp+=K0*Math.pow(10,al*(m.m-4.5))*(f(30)-f(0)); }
+  const K=mains.length>=3&&exp>0?Math.min(0.1,Math.max(0.005,K0*obs/exp)):K0;
+  return {b,K,nMain:mains.length,c,pp,al};
+}
+function etasWeekly(lat,lon,cat,R=300,Mt=5.0,H=7){
+  const now=Date.now(); const yrs=(now-cat.since)/(365.25*864e5);
+  const near=cat.ev.filter(e=>e.dep<=150&&hav(lat,lon,e.lat,e.lon)<=R); const par=fitRegion(near,now);
+  const bgDays=(yrs*365.25)-60; const bg=near.filter(e=>e.m>=Mt&&now-e.t>60*864e5).length/bgDays*H; // esperados M≥Mt en H días (fondo)
+  let trig=0; const rec=near.filter(e=>now-e.t<=60*864e5);
+  for(const e of rec){ const t0=(now-e.t)/864e5; const f=t=>Math.pow(t+par.c,1-par.pp)/(1-par.pp); const sig=Math.min(R,Math.pow(10,0.5*e.m-1.8)); const d=hav(lat,lon,e.lat,e.lon); const spatial=d<=sig?1:Math.exp(-Math.pow((d-sig)/sig,2));
+    trig+=par.K*Math.pow(10,par.al*(e.m-4.5))*(f(t0+H)-f(t0))*Math.pow(10,-par.b*(Mt-4.5))*spatial; }
+  const lam=bg+trig; const p=1-Math.exp(-lam), p0=1-Math.exp(-bg); const big=rec.slice().sort((a,b)=>b.m-a.m)[0];
+  const tsu=rec.find(e=>e.m>=7&&e.dep<=60); 
+  return {p,p0,bg,trig,ratio:bg>0?lam/bg:(trig>0?9:1),nRec:rec.length,big,nAll:near.length,par,tsu};
+}
+function registerForecast(rows){ // registro CSEP-like y verificación con el catálogo actual
+  let log=[]; try{log=JSON.parse(localStorage.getItem("agc_fc")||"[]");}catch(e){}
+  const now=Date.now();
+  // verificar pronósticos vencidos (7 d) con el catálogo
+  let brier=null,n=0,hits=0; const done=[];
+  for(const f of log){ if(f.verified||now<f.t+7*864e5) continue; const occ=CAT.ev.some(e=>e.t>f.t&&e.t<=f.t+7*864e5&&e.m>=5&&e.dep<=150&&hav(f.lat,f.lon,e.lat,e.lon)<=300)?1:0; f.verified=true; f.occ=occ; }
+  const ver=log.filter(f=>f.verified); if(ver.length){ n=ver.length; brier=ver.reduce((s,f)=>s+(f.p-f.occ)**2,0)/n; hits=ver.filter(f=>f.occ).length; }
+  // registrar nuevos (uno por ciudad por día)
+  const today=new Date().toISOString().slice(0,10);
+  for(const {c,r} of rows){ if(!log.some(f=>f.city===c[0]&&f.day===today)) log.push({city:c[0],lat:c[1],lon:c[2],t:now,day:today,p:r.p,p0:r.p0}); }
+  log=log.slice(-800); try{localStorage.setItem("agc_fc",JSON.stringify(log));}catch(e){}
+  return {brier,n,hits,pending:log.filter(f=>!f.verified).length};
+}
+function renderForecast(lat,lon,locName){
+  const tb=$("tblf"); if(!CAT){ tb.innerHTML=`<tr><td class="note">Catálogo USGS no disponible en este momento.</td></tr>`; return; }
+  const cities=[[locName+" (seleccionado)",lat,lon]].concat(REG["Chile · capitales regionales"].map(c=>[c[0],c[1],c[2]]));
+  const rows=cities.map(c=>({c,r:etasWeekly(c[1],c[2],CAT,300,5.0,7),r1:etasWeekly(c[1],c[2],CAT,300,5.0,1),r30:etasWeekly(c[1],c[2],CAT,300,5.0,30)}));
+  const V=registerForecast(rows);
+  let t=`<tr><th>Ciudad</th><th>24 h</th><th>7 días</th><th>30 días</th><th>Fondo 7 d</th><th>Razón</th><th>b · K regional</th><th>Sismos 60 d</th><th>Mayor reciente</th><th>Estado</th></tr>`;
+  for(const {c,r,r1,r30} of rows){ const stt=r.ratio>=3?["no","Anomalía fuerte"]:r.ratio>=2?["prec","Anomalía"]:["apto","Normal"]; 
+    t+=`<tr><td>${c[0]}${r.tsu?" 🌊":""}</td><td>${(r1.p*100).toFixed(1)} %</td><td><b>${(r.p*100).toFixed(0)} %</b></td><td>${(r30.p*100).toFixed(0)} %</td><td>${(r.p0*100).toFixed(0)} %</td><td>×${r.ratio.toFixed(1)}</td><td>${r.par.b.toFixed(2)} · ${r.par.K.toFixed(3)}</td><td>${r.nRec}</td><td>${r.big?"M"+r.big.m.toFixed(1)+" hace "+((Date.now()-r.big.t)/864e5).toFixed(0)+" d":"—"}</td><td><span class="pill ${stt[0]}" style="color:#fff">${stt[1]}</span></td></tr>`; }
+  t+=`<tr><td colspan="10" class="note" style="white-space:normal;text-align:left">Verificación CSEP en este dispositivo: ${V.n} pronósticos de 7 días verificados${V.n?`, ${V.hits} con sismo M≥5 ocurrido, puntaje de Brier ${V.brier.toFixed(3)} (0 = perfecto; 0,25 = azar)`:""}; ${V.pending} pendientes. 🌊 = sismo M≥7 somero en 60 días: revisar avisos SHOA.</td></tr>`;
+  tb.innerHTML=t;
+}
+function seismic(lat,lon,events){
+  const now=Date.now(); const ev=events.map(e=>({...e,dist:hav(lat,lon,e.lat,e.lon)})).map(e=>{const R=Math.sqrt(e.dist**2+(e.dep||10)**2); e.I=Math.max(1,Math.min(12,1.47*e.m-2.4*Math.log10(Math.max(R,1))+3.1)); e.warn=Math.max(0,e.dist*(1/3.5-1/6.8)); return e;}).sort((a,b)=>b.t-a.t);
+  const last7=ev.filter(e=>now-e.t<7*864e5&&e.m>=3), last30=ev.filter(e=>e.m>=3); const rate7=last7.length/7, rate30=last30.length/30;
+  const ratio=rate30>0?rate7/rate30:(last7.length?9:1);
+  // valor b (máxima verosimilitud, Aki) con Mc=3.0
+  const ms=ev.filter(e=>e.m>=3).map(e=>e.m); const b=ms.length>=15?0.4343/((ms.reduce((s,m)=>s+m,0)/ms.length)-(3.0-0.05)):null;
+  const main=ev.filter(e=>e.m>=5.5).sort((a,b)=>b.m-a.m)[0]; let after=null;
+  if(main){ const days=(now-main.t)/864e5; const a=-1.67,bb=0.91,pp=1.08,c=0.05; const lam=(t1,t2)=>{const k=Math.pow(10,a+bb*(main.m-5));const f=t=>Math.pow(t+c,1-pp)/(1-pp);return k*(f(t2)-f(t1));}; after={m:main.m,days,p7:1-Math.exp(-lam(days,days+7)),p7m6:1-Math.exp(-lam(days,days+7)*Math.pow(10,-bb))}; }
+  const maxI=ev.filter(e=>now-e.t<7*864e5).sort((a,b)=>b.I-a.I)[0];
+  return {ev,last7:last7.length,last30:last30.length,ratio,b,after,maxI};
+}
 async function fetchPOWER(lat,lon){
   const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(end); start.setDate(start.getDate()-32);
   const f=d=>d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
@@ -251,6 +336,10 @@ function run(models,obs,hourly,zone,soil){
       const mount=zone==="cordillera"||zone==="precordillera"; const alu=mount?(h.mm>=30&&h.fl>=2500?3:(h.mm>=20&&h.fl>=2000?2:(h.mm>=10&&h.fl>=2500?1:0))):(h.maxh>=10&&h.mm>=30?1:0);
       const inu=r72>=80?3:(r72>=50||(h.sm>=0.40&&h.mm>=40))?2:(r72>=30&&h.sm>=0.35)?1:0; const storm=h.cape>=1500&&h.mm>=1?3:(h.cape>=800&&h.mm>=1?2:(h.cape>=400?1:0)); const wind=h.gust>=90?3:(h.gust>=70?2:(h.gust>=50?1:0));
       risks.push({k,mm:h.mm,maxh:h.maxh,fl:h.fl,cape:h.cape,sm:h.sm,gust:h.gust,r72,heavy:Math.max(heavy,inten),alu,inu,storm,wind}); }); }
+  // ola de calor y helada desde el consenso diario
+  const fut=days.filter(x=>x.layer==="real");
+  fut.forEach((x,i)=>{ const r=risks.find(r=>r.k===x.k)||(risks.push({k:x.k,mm:x.mm,maxh:0,fl:0,cape:0,sm:0,gust:0,r72:0,heavy:0,alu:0,inu:0,storm:0,wind:0}),risks[risks.length-1]);
+    const w3=[0,1,2].map(j=>fut[i-j]).filter(Boolean); r.tmax=x.tmax; r.tmin=x.tmin; r.heat=(w3.length===3&&w3.every(y=>y.tmax>=34))?3:(w3.length===3&&w3.every(y=>y.tmax>=30))?2:(x.tmax>=30?1:0); r.frost=x.tmin<=-2?3:(x.tmin<=0?2:(x.tmin<=crit.frost?1:0)); });
   return {info,days,risks};
 }
 
@@ -273,8 +362,8 @@ function render(res,st,locName){
    <div class="tile"><div class="k">Días al plazo</div><div class="v">${left}</div><div class="s">${crit.deadline}</div></div></div>
    <div class="verdict ${cls}"><p class="by">Decisión · ${locName}</p><p><b>${head}</b></p><p>${body}</p></div>`;
   // alertas
-  const lv=["Sin aviso","Atención","Alerta","Alarma"]; const mx=(f)=>risks.reduce((m,r)=>r[f]>m.l?{l:r[f],k:r.k}:m,{l:0,k:null});
-  const A=[["Lluvia intensa","heavy",r=>`${r.mm.toFixed(0)} mm/24 h · máx ${r.maxh.toFixed(1)} mm/h`],["Tormenta eléctrica","storm",r=>`CAPE ${r.cape.toFixed(0)} J/kg`],["Aluvión / remoción en masa","alu",r=>`${r.mm.toFixed(0)} mm · isoterma 0 °C ${r.fl.toFixed(0)} m`],["Inundación / anegamiento","inu",r=>`72 h: ${r.r72.toFixed(0)} mm · suelo ${r.sm.toFixed(2)} m³/m³`],["Viento fuerte","wind",r=>`ráfagas ${r.gust.toFixed(0)} km/h`]];
+  const lv=["Sin aviso","Atención","Alerta","Alarma"]; const mx=(f)=>risks.reduce((m,r)=>(r[f]||0)>m.l?{l:r[f],k:r.k}:m,{l:0,k:null});
+  const A=[["Lluvia intensa","heavy",r=>`${r.mm.toFixed(0)} mm/24 h · máx ${r.maxh.toFixed(1)} mm/h`],["Tormenta eléctrica","storm",r=>`CAPE ${r.cape.toFixed(0)} J/kg`],["Aluvión / remoción en masa","alu",r=>`${r.mm.toFixed(0)} mm · isoterma 0 °C ${r.fl.toFixed(0)} m`],["Inundación / anegamiento","inu",r=>`72 h: ${r.r72.toFixed(0)} mm · suelo ${r.sm.toFixed(2)} m³/m³`],["Viento fuerte","wind",r=>`ráfagas ${r.gust.toFixed(0)} km/h`],["Ola de calor","heat",r=>`T máx ${r.tmax!=null?r.tmax.toFixed(0):"—"} °C`],["Helada","frost",r=>`T mín ${r.tmin!=null?r.tmin.toFixed(1):"—"} °C`]];
   $("alerts").innerHTML=risks.length?A.map(([n,f,s])=>{const m=mx(f);const rr=risks.find(r=>r.k===m.k)||risks[0];return `<div class="alert l${m.l}"><div class="k">${n}</div><div class="v">${lv[m.l]}${m.k?" · "+fmt(pd(m.k)):""}</div><div class="s">${m.k?s(rr):"sin señal en 7 días"}</div></div>`;}).join(""):`<div class="alert"><div class="k">Riesgos</div><div class="v">Sin datos horarios</div><div class="s">Open-Meteo no respondió; las alertas requieren CAPE, isoterma 0 °C y humedad de suelo.</div></div>`;
   // calendario
   $("calrange").textContent=`${fmt(days[0].d)} → ${fmt(days[days.length-1].d)}`;
@@ -291,6 +380,23 @@ function render(res,st,locName){
   for(const id in info){const i=info[id];tm+=`<tr><td>${i.name}</td><td>${i.agency}</td><td>${i.members}</td><td>${i.base.toFixed(2)}</td><td>${i.n}</td><td>${i.mae!=null?i.mae.toFixed(2):"—"}</td><td>${i.maeP!=null?i.maeP.toFixed(2):"—"}</td><td>${i.bT.toFixed(2)}</td><td>${i.bN.toFixed(2)}</td><td>${(i.w/Wt*100).toFixed(1)} %</td><td>${i.days}</td></tr>`;}
   $("tblm").innerHTML=tm;
   last={head,body,locName,fut,risks};
+  renderSeis(st,locName);
+  renderForecast(parseFloat($("lat").value),parseFloat($("lon").value),locName);
+}
+let seisData=null;
+function renderSeis(st,locName){
+  const el=$("seis"),tb=$("tblq"); if(!seisData){el.innerHTML=`<div class="alert"><div class="k">Sismicidad</div><div class="v">Sin datos</div><div class="s">USGS/CSN no respondieron.</div></div>`;tb.innerHTML="";return;}
+  const S=seisData; const lv=v=>v>=3?"l2":v>=1.5?"l1":"l0"; const ratioTxt=S.ratio>=3?"Anomalía: tasa ×"+S.ratio.toFixed(1):S.ratio>=1.5?"Tasa elevada ×"+S.ratio.toFixed(1):"Tasa normal ×"+S.ratio.toFixed(1);
+  const bTxt=S.b==null?"—":S.b.toFixed(2)+(S.b<0.8?" (bajo: mayor proporción de sismos grandes)":S.b>1.2?" (alto: enjambre/fluidos)":" (normal)");
+  const aft=S.after?`M${S.after.m.toFixed(1)} hace ${S.after.days.toFixed(1)} d · P(M≥5 en 7 d) ${(S.after.p7*100).toFixed(0)} % · P(M≥6) ${(S.after.p7m6*100).toFixed(0)} %`:"Sin sismo M≥5,5 en 30 días: no aplica";
+  const mi=S.maxI?`${S.maxI.I.toFixed(1)} Mercalli (M${S.maxI.m.toFixed(1)}, ${S.maxI.dist.toFixed(0)} km, ${fmt(S.maxI.t)})`:"ninguno en 7 días";
+  el.innerHTML=`<div class="alert ${lv(S.ratio)}"><div class="k">Actividad 7 d / 30 d (M≥3)</div><div class="v">${S.last7} / ${S.last30}</div><div class="s">${ratioTxt} respecto al promedio de 30 días</div></div>
+   <div class="alert ${S.b!=null&&S.b<0.8?"l1":"l0"}"><div class="k">Valor b (Gutenberg-Richter)</div><div class="v">${S.b==null?"—":S.b.toFixed(2)}</div><div class="s">${bTxt}</div></div>
+   <div class="alert ${S.after&&S.after.p7>0.2?"l2":S.after?"l1":"l0"}"><div class="k">Réplicas (Reasenberg-Jones)</div><div class="v">${S.after?(S.after.p7*100).toFixed(0)+" %":"—"}</div><div class="s">${aft}</div></div>
+   <div class="alert ${S.maxI&&S.maxI.I>=5?"l2":S.maxI&&S.maxI.I>=3?"l1":"l0"}"><div class="k">Mayor intensidad sentida en ${locName} (7 d)</div><div class="v">${S.maxI?S.maxI.I.toFixed(1):"—"}</div><div class="s">${mi}</div></div>`;
+  let t=`<tr><th>Fecha y hora</th><th>M</th><th>Prof. km</th><th>Dist. km</th><th>Intensidad est.</th><th>Ventana P→S</th><th>Referencia</th><th>Fuente</th></tr>`;
+  for(const e of S.ev.slice(0,25)) t+=`<tr><td>${e.t.toLocaleString("es-CL",{timeZone:"America/Santiago"})}</td><td><b>${e.m.toFixed(1)}</b></td><td>${(e.dep||0).toFixed(0)}</td><td>${e.dist.toFixed(0)}</td><td>${e.I.toFixed(1)}</td><td>${e.warn.toFixed(0)} s</td><td style="white-space:normal;text-align:left">${e.place||""}</td><td>${e.src}</td></tr>`;
+  tb.innerHTML=t||"";
 }
 function renderStatus(st){ $("status").innerHTML=Object.entries(st).map(([k,v])=>`<span class="${v.ok?"on":"off"}">${v.msg}</span>`).join(""); }
 function renderCrit(){ $("crit").innerHTML=Object.keys(DEF).map(k=>`<label>${LAB[k]}<input id="c_${k}" type="${k==="deadline"?"text":"number"}" step="${k==="pApto"?0.05:1}" value="${crit[k]}"></label>`).join("")+`<label><span>&nbsp;</span><button type="button" id="btnReset" class="ghost">Restablecer</button></label>`;
@@ -314,6 +420,10 @@ async function main(){
     fetchOMhourly(lat,lon).then(r=>{hourly=r;st.omh={ok:true,msg:"Riesgos: CAPE, isoterma 0 °C, humedad de suelo, ráfagas (7 días)"};}).catch(e=>st.omh={ok:false,msg:"Datos horarios de riesgo no disponibles"}),
     fetchPOWER(lat,lon).then(r=>{power=r;st.power={ok:true,msg:`NASA POWER: ${Object.keys(r).length} días observados para calibración`};}).catch(e=>st.power={ok:false,msg:"NASA POWER no disponible: "+e.message}),
     fetchMET(lat,lon).then(r=>{models.met_ecmwf=r;st.met={ok:true,msg:"MET Norway (ECMWF) 10 días"};}).catch(e=>st.met={ok:false,msg:"MET Norway no disponible"}),
+    (async()=>{ let ev=[]; try{ const u=await fetchUSGS(lat,lon); ev=ev.concat(u); st.usgs={ok:true,msg:`USGS: ${u.length} sismos M≥2,5 en 30 días (300 km)`}; }catch(e){ st.usgs={ok:false,msg:"USGS no disponible"}; }
+      try{ const c=await fetchCSN(lat,lon); const add=c.filter(q=>!ev.some(e=>Math.abs(e.t-q.t)<120e3&&Math.abs(e.m-q.m)<0.6)); ev=ev.concat(add); st.csn={ok:true,msg:`CSN Chile: ${c.length} sismos recientes (300 km)`}; }catch(e){ st.csn={ok:false,msg:"CSN (api.gael.cloud) no disponible"}; }
+      seisData=ev.length?seismic(lat,lon,ev):null; })(),
+    fetchCatalog().then(c=>{st.cat={ok:true,msg:`Catálogo USGS Chile 2000-hoy: ${c.ev.length} sismos M≥4,5 (modelo ETAS)`};}).catch(e=>st.cat={ok:false,msg:"Catálogo USGS no disponible"}),
     fetch7t(lat,lon).then(r=>{models.gfs_7t=r;st.t7={ok:true,msg:"7timer (GFS) 8 días"};}).catch(e=>st.t7={ok:false,msg:"7timer no disponible"})];
   const kmb=$("k_mb").value.trim(),ktwc=$("k_twc").value.trim();
   if(kmb) jobs.push(fetchMB(lat,lon,kmb).then(r=>{models.meteoblue=r;st.mb={ok:true,msg:"Meteoblue conectado"};}).catch(e=>st.mb={ok:false,msg:"Meteoblue: "+e.message}));
