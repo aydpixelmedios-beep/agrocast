@@ -77,7 +77,7 @@ details.tech summary{font-size:.95rem;color:var(--muted)}
 </head>
 <body>
 <header>
-  <div class="hdr"><div><div class="by">AgroCast Biobío · by RamiroKosher · v4.1</div><h1>¿Qué necesita saber hoy?</h1></div><button id="btnRun" type="button">Actualizar</button></div>
+  <div class="hdr"><div><div class="by">AgroCast Biobío · by RamiroKosher · v4.2</div><h1>¿Qué necesita saber hoy?</h1></div><button id="btnRun" type="button">Actualizar</button></div>
   <div class="chips" id="tabs">
     <button class="chip big on" data-tab="siembra" type="button">🌱 Voy a sembrar</button>
     <button class="chip big" data-tab="clima" type="button">🌦️ Clima y alertas</button>
@@ -100,12 +100,15 @@ details.tech summary{font-size:.95rem;color:var(--muted)}
 
 </section>
 <section class="panel" data-panel="clima"><div id="easyClima"></div>
+<h2>Calendario del tiempo <span class="note" id="calrange2"></span></h2><div class="cal" id="cal2"></div>
+<div class="legend"><span><i style="background:var(--ok-bg)"></i>Sin avisos</span><span><i style="background:var(--warn-bg)"></i>Atención</span><span><i style="background:var(--bad-bg)"></i>Alerta / alarma</span><span><i style="background:var(--tend)"></i>Tendencia</span><span><i style="background:var(--clim)"></i>Sin pronóstico</span></div>
 <h2>Alertas hidrometeorológicas (próximos 7 días)</h2>
 <div class="alerts" id="alerts"></div>
 <p class="note">Aluvión: lluvia ≥30 mm/24 h con isoterma 0 °C alta (≥2.500 m) en zona de precordillera/cordillera, o intensidad ≥10 mm/h. Inundación: acumulado 72 h ≥80 mm o suelo saturado (humedad 0-7 cm ≥0,40 m³/m³) con ≥40 mm/24 h. Tormenta: energía convectiva CAPE ≥800 J/kg con precipitación (el CAPE es el indicador físico de la carga eléctrica potencial de la atmósfera). Ola de calor (criterio DMC adaptado): T máx ≥30 °C tres días seguidos = alerta; ≥34 °C = alarma. Helada: T mín ≤2 °C = atención, ≤0 °C = alerta, ≤−2 °C = alarma. Niveles: 0 sin aviso · 1 atención · 2 alerta · 3 alarma.</p>
 
 </section>
 <section class="panel" data-panel="sismos"><div id="easySismos"></div>
+<h2>Calendario del tiempo <span class="note" id="calrange3"></span></h2><div class="cal" id="cal3"></div>
 <h2>Vigilancia sísmica (radio 300 km)</h2>
 <div class="warnbox"><b>Lo que este módulo puede y no puede hacer.</b> Nadie en el mundo puede predecir la fecha, lugar y magnitud de un terremoto; el experimento de la Universidad de Texas (2023) acertó ~70 % de localizaciones con ventanas de una semana y 320 km de radio, y no es operativo. Lo que sí es ciencia establecida y aquí se implementa: (1) sismicidad en tiempo real (USGS y Centro Sismológico Nacional), (2) intensidad estimada en su comuna para cada evento, (3) probabilidad estadística de réplicas tras un sismo fuerte (modelo Reasenberg-Jones / ley de Omori), (4) detección de anomalías de tasa y de valor b (Gutenberg-Richter), y (5) la física de la alerta temprana por ondas P, que en Chile entrega el sistema de alertas sísmicas de Android (Google) a los teléfonos: actívelo en Ajustes → Seguridad y emergencia → Alertas de terremoto.</div>
 <div class="seis" id="seis" style="margin-top:8px"></div>
@@ -428,6 +431,12 @@ function render(res,st,locName){
   for(const x of days){ const cl=x.layer==="past"?"past":x.layer==="real"?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):x.layer; const rk=risks.find(r=>r.k===x.k); const [ico,txt]=x.tmin!=null?icoFrom(x.mm,x.tmax,rk?rk.cape:0):["▫️",x.layer==="clim"?"Sin pronóstico":"—"];
     h+=`<div class="day ${cl}" title="${x.k}"><div class="n">${x.d.getDate()} <small>${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][x.d.getMonth()]}</small></div><div class="ico">${ico}</div><div style="font-size:.64rem">${txt}</div>${x.tmin!=null?`<div class="t">↓<b>${Math.round(x.tmin)}°</b> ↑<b>${Math.round(x.tmax)}°</b></div><div class="t">${x.mm>=0.5?x.mm.toFixed(x.mm<10?1:0)+" mm":"seco"}</div><div class="p">P apto ${(x.pApto*100).toFixed(0)} % · ${x.members.length} esc.${x.tsoil!=null?" · suelo "+x.tsoil.toFixed(0)+"°":""}</div>`:""}<span class="pill ${x.tmin!=null?(x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"):"sin"}">${(()=>{const sm=window.innerWidth<640; const l=x.layer==="past"?"Pasado":x.sem; return sm?({"Pasado":"PAS.","PRECAUCIÓN":"PREC.","SIN DATO":"S/D"}[l]||l):l;})()}</span></div>`; }
   $("cal").innerHTML=h;
+  // calendario modo clima
+  let hc=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].map(x=>`<div class="dow">${x}</div>`).join(""); for(let i=0;i<off;i++)hc+="<div></div>";
+  for(const x of days){ const rk=risks.find(r=>r.k===x.k); const lvl=rk?Math.max(rk.heavy||0,rk.storm||0,rk.alu||0,rk.inu||0,rk.wind||0,rk.heat||0,rk.frost||0):0; const tag=rk?(rk.heat>=2?"CALOR":rk.frost>=1?"HELADA":rk.heavy>=2||rk.inu>=2||rk.alu>=2?"LLUVIA":rk.storm>=2?"TORMENTA":rk.wind>=2?"VIENTO":lvl===1?"ATENCIÓN":"OK"):(x.tmin!=null?(x.mm>=10?"LLUVIA":"OK"):"");
+    const cl=x.layer==="past"?"past":x.layer==="real"?(lvl>=2||tag==="LLUVIA"?"no":lvl===1?"prec":"apto"):x.layer; const [ico,txt]=x.tmin!=null?icoFrom(x.mm,x.tmax,rk?rk.cape:0):["▫️",x.layer==="clim"?"Sin pronóstico":"—"];
+    hc+=`<div class="day ${cl}" title="${x.k}"><div class="n">${x.d.getDate()} <small>${["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][x.d.getMonth()]}</small></div><div class="ico">${ico}</div><div style="font-size:.64rem">${txt}</div>${x.tmin!=null?`<div class="t">↓<b>${Math.round(x.tmin)}°</b> ↑<b>${Math.round(x.tmax)}°</b></div><div class="t">${x.mm>=0.5?x.mm.toFixed(x.mm<10?1:0)+" mm":"seco"}</div><div class="p">P lluvia ${(100-x.pDry*100).toFixed(0)} %</div>`:""}<span class="pill ${x.tmin!=null?(cl==="no"?"no":cl==="prec"?"prec":"apto"):"sin"}">${x.layer==="past"?"PAS.":(x.tmin!=null?tag:"S/D")}</span></div>`; }
+  $("cal2").innerHTML=hc; $("cal3").innerHTML=hc; $("calrange2").textContent=$("calrange").textContent; $("calrange3").textContent=$("calrange").textContent;
   // tabla diaria
   let t=`<tr><th>Fecha</th><th>Plazo</th><th>Escenarios</th><th>T suelo media · 08h</th><th>T mín</th><th>±</th><th>T máx</th><th>±</th><th>Lluvia</th><th>±</th><th>P seco</th><th>P >10 mm</th><th>P helada</th><th>GDD</th><th>P APTO</th><th>Conf.</th><th>Semáforo</th></tr>`;
   for(const x of days.filter(x=>x.tmin!=null)) t+=`<tr><td>${DOW[x.d.getDay()]} ${x.d.getDate()}/${x.d.getMonth()+1}</td><td>${x.lead}</td><td>${x.members.length}</td><td>${x.tsoil!=null?x.tsoil.toFixed(1)+" · "+(x.tsoil08!=null?x.tsoil08.toFixed(1):"—"):"—"}</td><td>${x.tmin}</td><td>${x.sdN.toFixed(1)}</td><td>${x.tmax}</td><td>${x.sdT.toFixed(1)}</td><td>${x.mm}</td><td>${x.sdP.toFixed(1)}</td><td>${(x.pDry*100).toFixed(0)} %</td><td>${(x.pWet10*100).toFixed(0)} %</td><td>${(x.pFrost*100).toFixed(0)} %</td><td>${x.gdd.toFixed(1)}</td><td><div class="pbar"><i style="width:${(x.pApto*100).toFixed(0)}%"></i></div>${(x.pApto*100).toFixed(0)} %</td><td>×${x.conf}</td><td><span class="pill ${x.sem==="APTO"?"apto":x.sem==="NO"?"no":"prec"}" style="color:#fff">${x.sem}</span></td></tr>`;
